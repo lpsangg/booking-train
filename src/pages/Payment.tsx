@@ -33,7 +33,7 @@ const Payment = () => {
     student: parseInt(searchParams.get('student') || '0'),
     union: parseInt(searchParams.get('union') || '0')
   };
-  const totalPassengers = ticketInfo.totalPassengers || Object.values(passenger).reduce((sum, count) => sum + count, 0);
+  const totalPassengers = ticketInfo.totalPassengers || Object.values(passenger).reduce((sum, count) => Number(sum) + Number(count), 0);
 
   // Lấy thông tin hành khách từ localStorage
   const passengerInfo = JSON.parse(localStorage.getItem('passengerInfo') || '{}');
@@ -84,16 +84,15 @@ const Payment = () => {
     
     // Nếu có nhiều ghế, nhóm theo toa
     const seatsByCoach: { [key: string]: { isSleeper: boolean; seats: number[] } } = {};
-    selectedSeats.forEach(seat => {
+    selectedSeats.forEach((seat: string) => {
       const parts = seat.split('-');
       if (parts.length === 2) {
         const coachId = parts[0];
         const seatNumber = parseInt(parts[1]);
-        const coachIdNum = parseInt(coachId);
         
         if (!seatsByCoach[coachId]) {
           seatsByCoach[coachId] = {
-            isSleeper: coachIdNum >= 3,
+            isSleeper: parseInt(coachId) >= 3,
             seats: []
           };
         }
@@ -104,7 +103,6 @@ const Payment = () => {
     // Format theo từng toa
     const coachInfo = Object.entries(seatsByCoach).map(([coachId, info]) => {
       const sortedSeats = info.seats.sort((a, b) => a - b);
-      const coachIdNum = parseInt(coachId);
       
       if (info.isSleeper) {
         // Toa nằm: hiển thị theo khoang và giường

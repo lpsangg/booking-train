@@ -4,6 +4,7 @@ import logoRailway from '../assets/logo-railway.png';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import dataTau from '../../data/data_tau.json';
+import trainDataRaw from '../../data/data_tau.json';
 
 interface Train {
   id: string;
@@ -505,8 +506,8 @@ function parseTrainsFromDataTau(from: string, to: string): Train[] {
   const toNorm = normalize(to);
 
   // Duyệt qua tất cả các tuyến trong dataTau.train_schedules
-  for (const routeKey in dataTau.train_schedules) {
-    const route = dataTau.train_schedules[routeKey] as any;
+  for (const routeKey in dataTau.train_schedules as Record<string, DataTauDirection>) {
+    const route = (dataTau.train_schedules as Record<string, DataTauDirection>)[routeKey];
     for (const trainKey in route.trains) {
       const train = route.trains[trainKey] as any;
       const stationsArr = Object.values(train.stations) as Array<{
@@ -644,19 +645,40 @@ function parseDynamicPrices(
   return result;
 }
 
+function getTrainsBetweenStations(from: string, to: string) {
+  const trains: any[] = [];
+  for (const directionKey in dataTau.train_schedules as any) {
+    const direction = (dataTau.train_schedules as any)[directionKey];
+    for (const trainKey in direction.trains as any) {
+      const train = (direction.trains as any)[trainKey];
+      const stationsArr = Object.values(train.stations) as any[];
+      const fromIdx = stationsArr.findIndex((s: any) => s.station_name === from);
+      const toIdx = stationsArr.findIndex((s: any) => s.station_name === to);
+      if (fromIdx !== -1 && toIdx !== -1 && fromIdx < toIdx) {
+        trains.push({
+          train_code: train.train_code,
+          depart: stationsArr[fromIdx],
+          arrive: stationsArr[toIdx],
+        });
+      }
+    }
+  }
+  return trains;
+}
+
 const SearchResults = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const from = searchParams.get('from') || '';
   const to = searchParams.get('to') || '';
-  const [dynamicPrices, setDynamicPrices] = useState({});
+  const [dynamicPrices, setDynamicPrices] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     async function fetchAll() {
       setLoading(true);
-      const prices = {};
+      const prices: Record<string, any> = {};
       for (const code of DYNAMIC_PRICE_TRAINS) {
         const data = await loadTrainPriceData(code);
         prices[code] = data;
@@ -747,7 +769,7 @@ const SearchResults = () => {
         // Nếu có HARDCODED_TRAINS thì lấy từ đó, nếu không thì lấy từ FACILITIES
         // @ts-ignore
         const hardcoded = (typeof HARDCODED_TRAINS !== 'undefined' ? HARDCODED_TRAINS : []);
-        let found = hardcoded.find && hardcoded.find(t => t.id === code);
+        let found = hardcoded.find && hardcoded.find((t: { id: string }) => t.id === code);
         if (found && found.facilities) train.facilities = found.facilities;
         else if (FACILITIES[code]) train.facilities = Object.keys(FACILITIES[code]);
         else train.facilities = [];
@@ -774,106 +796,7 @@ const SearchResults = () => {
   }
 
   // Hàm tạo danh sách tàu từ dữ liệu JSON
-  const generateTrainsFromData = () => {
-    const trains: Train[] = [];
-    
-    // Tìm route phù hợp
-    const cleanFrom = from.replace('Ga ', '').replace('TP.HCM', 'Sài Gòn');
-    const cleanTo = to.replace('Ga ', '').replace('TP.HCM', 'Sài Gòn');
-    
-    console.log('Tìm route với:', { cleanFrom, cleanTo });
-    
-    const route = (trainData as TrainData).routes.find((r: Route) => 
-      (r.from === cleanFrom && r.to === cleanTo) ||
-      (r.from === cleanTo && r.to === cleanFrom)
-    );
-    
-    console.log('Route tìm được:', route);
-
-    if (!route) return [];
-
-    // Tạo các chuyến tàu từ dữ liệu seat_prices
-    if (route.seat_prices) {
-      route.seat_prices.cars.forEach((car: Car) => {
-        car.rows.forEach((row: Row) => {
-          trains.push({
-            id: `SE${car.car_number}-${row.row_range}`,
-            name: `SE${car.car_number} - ${car.type === 'noise' ? 'Toa ồn' : 'Toa yên tĩnh'}`,
-            departTime: '06:00',
-            arriveTime: '14:30',
-            duration: '8h 30m',
-            price: row.price,
-            seats: 45,
-            recommendFor: car.type === 'quiet' ? ['elderly', 'family'] : ['student', 'budget'],
-            reason: car.type === 'quiet' ? 'Toa yên tĩnh, phù hợp người cao tuổi' : 'Giá rẻ, phù hợp sinh viên',
-            route: `${route.from} → ${route.to}`,
-            seatType: 'Ngồi mềm',
-            carNumber: car.car_number,
-            rowRange: row.row_range,
-            stops: []
-          });
-        });
-      });
-    }
-
-    // Tạo các chuyến tàu từ dữ liệu sleeper_prices
-    if (route.sleeper_prices) {
-      // Khoang 6 người
-      if (route.sleeper_prices.compartment_6) {
-        Object.entries(route.sleeper_prices.compartment_6).forEach(([bunkLevel, prices]) => {
-          if (Array.isArray(prices)) {
-            prices.forEach((price: number, index: number) => {
-              trains.push({
-                id: `SE6-${bunkLevel}-${index + 1}`,
-                name: `SE6 - Khoang 6 người`,
-                departTime: '19:30',
-                arriveTime: '04:00',
-                duration: '8h 30m',
-                price: price,
-                seats: 32,
-                recommendFor: ['family', 'group'],
-                reason: 'Khoang 6 người, phù hợp gia đình',
-                route: `${route.from} → ${route.to}`,
-                seatType: 'Nằm khoang 6',
-                bunkLevel: parseInt(bunkLevel.replace('bunk_', '')),
-                compartmentType: 'compartment_6',
-                stops: []
-              });
-            });
-          }
-        });
-      }
-
-      // Khoang 4 người
-      if (route.sleeper_prices.compartment_4) {
-        Object.entries(route.sleeper_prices.compartment_4).forEach(([bunkLevel, prices]) => {
-          if (Array.isArray(prices)) {
-            prices.forEach((price: number, index: number) => {
-              trains.push({
-                id: `SE4-${bunkLevel}-${index + 1}`,
-                name: `SE4 - Khoang 4 người`,
-                departTime: '08:00',
-                arriveTime: '16:30',
-                duration: '8h 30m',
-                price: price,
-                seats: 28,
-                recommendFor: ['business', 'comfort'],
-                reason: 'Khoang 4 người cao cấp, ghế êm ái',
-                route: `${route.from} → ${route.to}`,
-                seatType: 'Nằm khoang 4',
-                bunkLevel: parseInt(bunkLevel.replace('bunk_', '')),
-                compartmentType: 'compartment_4',
-                stops: []
-              });
-            });
-          }
-        });
-      }
-    }
-
-    return trains;
-  };
-
+  
   // Hàm chọn tàu
   const handleSelectTrain = (train: Train) => {
     console.log('=== DEBUG: handleSelectTrain được gọi ===');

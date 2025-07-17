@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
-import { SEAT_LAYOUT, LAYOUT_KHOANG_6, LAYOUT_KHOANG_4 } from '../layouts/seatLayout';
+import { SEAT_LAYOUT } from '../layouts/seatLayout';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
@@ -112,14 +110,6 @@ const COACHES = [
   { id: 10, type: '4-berth cabin', seats: 28, price: 1500000 },
 ];
 
-const getCoachLabel = (coach: typeof COACHES[0]) => `${coach.type}`;
-
-const getCoachMinPrice = (seats: Seat[]) => {
-  const available = seats.filter(s => s.status === 'available');
-  if (available.length === 0) return 0;
-  return Math.min(...available.map(s => s.price));
-};
-
 // SVG ghế vuông
 const SeatIcon = ({ size = 32, color = "#e0e0e0" }) => (
   <svg width={size} height={size} viewBox="0 0 32 32">
@@ -139,56 +129,15 @@ const SeatIconOccupied = ({ size = 32 }) => (
 );
 
 // Bảng noise và màu tương ứng cho toa 1 (Ngồi mềm)
-const NOISE_COLORS = [
-  { value: 373000, color: '#f87171' },
-  { value: 387000, color: '#fb7185' },
-  { value: 401000, color: '#fbbf24' },
-  { value: 416000, color: '#facc15' },
-  { value: 430000, color: '#fde047' },
-  { value: 444000, color: '#fef08a' },
-  { value: 459000, color: '#fef9c3' },
-];
-// Ma trận noise cho 28 ghế (4x7) - Toa 1 (Ngồi mềm)
-const NOISE_MATRIX = [
-  373000,373000,373000,373000,
-  387000,387000,387000,387000,
-  401000,401000,401000,401000,
-  416000,416000,416000,416000,
-  430000,430000,430000,430000,
-  444000,444000,444000,444000,
-  459000,459000,459000,459000
-];
-function getNoiseColor(value: number) {
-  const found = NOISE_COLORS.find(nc => nc.value === value);
-  return found ? found.color : '#fff';
-}
+// const NOISE_COLORS = [ ... ];
+// const NOISE_MATRIX = [ ... ];
+// function getNoiseColor(value: number) { ... }
 
-// Bảng noise và màu tương ứng cho toa 2 (Gối mềm)
-const NOISE_COLORS_2 = [
-  { value: 473000, color: '#fef9c3' }, // vàng nhạt
-  { value: 488000, color: '#fef08a' }, // vàng
-  { value: 502000, color: '#d9f99d' }, // xanh lá nhạt
-  { value: 516000, color: '#bbf7d0' }, // xanh lá nhạt hơn
-  { value: 531000, color: '#6ee7b7' }, // xanh lá vừa
-  { value: 545000, color: '#34d399' }, // xanh lá đậm
-  { value: 559000, color: '#10b981' }, // xanh lá rất đậm
-];
-// Ma trận noise cho 28 ghế (4x7) - Toa 2 (Gối mềm)
-const NOISE_MATRIX_2 = [
-  473000,473000,473000,473000,
-  488000,488000,488000,488000,
-  502000,502000,502000,502000,
-  516000,516000,516000,516000,
-  531000,531000,531000,531000,
-  545000,545000,545000,545000,
-  559000,559000,559000,559000
-];
-function getNoiseColor2(value: number) {
-  const found = NOISE_COLORS_2.find(nc => nc.value === value);
-  return found ? found.color : '#fff';
-}
+// Bảng noise cho từng khoang/tầng của toa 2 (Gối mềm)
+// const NOISE_MATRIX_2 = [ ... ];
+// function getNoiseColor2(value: number) { ... }
 
-// Bảng noise cho từng khoang/tầng của toa 1 (Ngồi mềm)
+// Bảng noise cho từng khoang/tầng của toa 3 (Nằm khoang 6)
 const NOISE_KHOANGS_1 = [
   // Hàng 1
   [1200, 1205, 1210, 1215, 1220, 1225, 1230],
@@ -200,7 +149,7 @@ const NOISE_KHOANGS_1 = [
   [1305, 1310, 1315, 1320, 1325, 1330, 1335],
 ];
 
-// Bảng noise cho từng khoang/tầng của toa 2 (Gối mềm)
+// Bảng noise cho từng khoang/tầng của toa 4 (Nằm khoang 6)
 const NOISE_KHOANGS_2 = [
   // Hàng 1
   [1340, 1345, 1350, 1355, 1360, 1365, 1370],
@@ -214,7 +163,7 @@ const NOISE_KHOANGS_2 = [
 // Màu sắc: gradient cam-xanh lá
 
 
-// Bảng noise cho từng khoang/tầng của toa 3 (Nằm khoang 6)
+// Bảng noise cho từng khoang/tầng của toa 5 (Nằm khoang 6)
 const NOISE_KHOANGS_3 = [
   // Khoang 1
   [642, 635, 628, 647, 640, 633],
@@ -246,7 +195,7 @@ function getNoiseColor3_v2(value: number) {
   return `rgb(${r},${g},${b})`;
 }
 
-// Bảng noise cho từng khoang/tầng của toa 4 (Nằm khoang 6)
+// Bảng noise cho từng khoang/tầng của toa 6 (Nằm khoang 4)
 const NOISE_KHOANGS_4 = [
   // Khoang 1
   [712, 705, 698, 717, 710, 703],
@@ -277,7 +226,7 @@ function getNoiseColor4_v2(value: number) {
   return `rgb(${r},${g},${b})`;
 }
 
-// Bảng noise cho từng khoang/tầng của toa 5 (Nằm khoang 6)
+// Bảng noise cho từng khoang/tầng của toa 7 (Nằm khoang 4)
 const NOISE_KHOANGS_5 = [
   // Khoang 1
   [782, 775, 768, 787, 780, 773],
@@ -308,7 +257,7 @@ function getNoiseColor5_v2(value: number) {
   return `rgb(${r},${g},${b})`;
 }
 
-// Bảng noise cho từng khoang/tầng của toa 5 (Nằm khoang 4)
+// Bảng noise cho từng khoang/tầng của toa 8 (Nằm khoang 4)
 const NOISE_KHOANGS_4_5 = [
   // Khoang 1
   [1487, 1476, 1487, 1476],
@@ -518,33 +467,6 @@ function flattenNoiseMatrixForCoaches6to10_strictOrder() {
   return result;
 }
 
-// Custom handle nhỏ cho slider
-const CustomHandle = (node: React.ReactNode, props: any) => {
-  const { dragging } = props;
-  return (
-    <div
-      style={{
-        width: 24,
-        height: 24,
-        background: '#fff',
-        border: '3px solid #ec407a',
-        boxShadow: '0 2px 8px #ec407a33',
-        borderRadius: '50%',
-        position: 'absolute',
-        top: -9,
-        zIndex: 2,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        transition: 'border 0.2s',
-      }}
-    >
-      <div style={{ width: 12, height: 12, borderRadius: '50%', background: dragging ? '#ec407a' : '#fff' }} />
-    </div>
-  );
-};
-
 const SelectSeat: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -567,7 +489,7 @@ const SelectSeat: React.FC = () => {
   
   // State cho giá động
   const [dynamicPrices, setDynamicPrices] = useState<DynamicPriceItem[]>([]);
-  const [loadingPrices, setLoadingPrices] = useState(false);
+  // const [loadingPrices, setLoadingPrices] = useState(false);
   
   // Tạo mô tả hành khách
   const getPassengerDescription = () => {
@@ -588,7 +510,7 @@ const SelectSeat: React.FC = () => {
         return;
       }
       
-      setLoadingPrices(true);
+      // const setLoadingPrices = true;
       try {
         const priceData = await loadTrainPriceData(trainId);
         if (priceData) {
@@ -615,7 +537,7 @@ const SelectSeat: React.FC = () => {
       } catch (error) {
         console.error('Error loading dynamic prices:', error);
       } finally {
-        setLoadingPrices(false);
+        // setLoadingPrices(false);
       }
     }
     
