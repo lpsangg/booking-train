@@ -1,0 +1,493 @@
+{
+  "train_schedules": {
+    "hanoi_to_saigon": {
+      "direction": "Hà Nội → Sài Gòn",
+      "trains": {
+        "SE1": {
+          "train_code": "SE1",
+          "stations": {
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 0,
+              "departure_time": "20:50",
+              "arrival_time": "20:50",
+              "day_offset": 0
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 319,
+              "departure_time": "02:35",
+              "arrival_time": "02:35",
+              "day_offset": 1
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 791,
+              "departure_time": "12:27",
+              "arrival_time": "12:27",
+              "day_offset": 1
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 1315,
+              "departure_time": "21:44",
+              "arrival_time": "21:44",
+              "day_offset": 1
+            },
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 1726,
+              "departure_time": "05:45",
+              "arrival_time": "05:45",
+              "day_offset": 2
+            }
+          }
+        },
+        "SE3": {
+          "train_code": "SE3",
+          "stations": {
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 0,
+              "departure_time": "19:20",
+              "arrival_time": "19:20",
+              "day_offset": 0
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 319,
+              "departure_time": "01:05",
+              "arrival_time": "01:05",
+              "day_offset": 1
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 791,
+              "departure_time": "10:51",
+              "arrival_time": "10:51",
+              "day_offset": 1
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 1315,
+              "departure_time": "21:09",
+              "arrival_time": "21:09",
+              "day_offset": 1
+            },
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 1726,
+              "departure_time": "05:15",
+              "arrival_time": "05:15",
+              "day_offset": 2
+            }
+          }
+        },
+        "SE5": {
+          "train_code": "SE5",
+          "stations": {
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 0,
+              "departure_time": "08:55",
+              "arrival_time": "08:55",
+              "day_offset": 0
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 319,
+              "departure_time": "14:53",
+              "arrival_time": "14:53",
+              "day_offset": 0
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 791,
+              "departure_time": "01:46",
+              "arrival_time": "01:46",
+              "day_offset": 1
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 1315,
+              "departure_time": "11:28",
+              "arrival_time": "11:28",
+              "day_offset": 1
+            },
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 1726,
+              "departure_time": "20:20",
+              "arrival_time": "20:20",
+              "day_offset": 1
+            }
+          }
+        },
+        "SE7": {
+          "train_code": "SE7",
+          "stations": {
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 0,
+              "departure_time": "06:00",
+              "arrival_time": "06:00",
+              "day_offset": 0
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 319,
+              "departure_time": "12:06",
+              "arrival_time": "12:06",
+              "day_offset": 0
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 791,
+              "departure_time": "23:03",
+              "arrival_time": "23:03",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 1315,
+              "departure_time": "09:16",
+              "arrival_time": "09:16",
+              "day_offset": 1
+            },
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 1726,
+              "departure_time": "17:35",
+              "arrival_time": "17:35",
+              "day_offset": 1
+            }
+          }
+        },
+        "SE9": {
+          "train_code": "SE9",
+          "stations": {
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 0,
+              "departure_time": "12:50",
+              "arrival_time": "12:50",
+              "day_offset": 0
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 319,
+              "departure_time": "18:58",
+              "arrival_time": "18:58",
+              "day_offset": 0
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 791,
+              "departure_time": "06:29",
+              "arrival_time": "06:29",
+              "day_offset": 1
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 1315,
+              "departure_time": "17:45",
+              "arrival_time": "17:45",
+              "day_offset": 1
+            },
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 1726,
+              "departure_time": "03:40",
+              "arrival_time": "03:40",
+              "day_offset": 2
+            }
+          }
+        }
+      }
+    },
+    "saigon_to_hanoi": {
+      "direction": "Sài Gòn → Hà Nội",
+      "trains": {
+        "SE2": {
+          "train_code": "SE2",
+          "stations": {
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 0,
+              "departure_time": "20:35",
+              "arrival_time": "20:35",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 411,
+              "departure_time": "03:50",
+              "arrival_time": "03:50",
+              "day_offset": 1
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 935,
+              "departure_time": "13:33",
+              "arrival_time": "13:33",
+              "day_offset": 1
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 1407,
+              "departure_time": "23:19",
+              "arrival_time": "23:19",
+              "day_offset": 1
+            },
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 1726,
+              "departure_time": "05:45",
+              "arrival_time": "05:45",
+              "day_offset": 2
+            }
+          }
+        },
+        "SE4": {
+          "train_code": "SE4",
+          "stations": {
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 0,
+              "departure_time": "19:25",
+              "arrival_time": "19:25",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 411,
+              "departure_time": "02:52",
+              "arrival_time": "02:52",
+              "day_offset": 1
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 935,
+              "departure_time": "12:38",
+              "arrival_time": "12:38",
+              "day_offset": 1
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 1407,
+              "departure_time": "22:31",
+              "arrival_time": "22:31",
+              "day_offset": 1
+            },
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 1726,
+              "departure_time": "04:55",
+              "arrival_time": "04:55",
+              "day_offset": 2
+            }
+          }
+        },
+        "SE6": {
+          "train_code": "SE6",
+          "stations": {
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 0,
+              "departure_time": "08:40",
+              "arrival_time": "08:40",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 411,
+              "departure_time": "16:12",
+              "arrival_time": "16:12",
+              "day_offset": 0
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 935,
+              "departure_time": "01:59",
+              "arrival_time": "01:59",
+              "day_offset": 1
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 1407,
+              "departure_time": "12:42",
+              "arrival_time": "12:42",
+              "day_offset": 1
+            },
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 1726,
+              "departure_time": "19:12",
+              "arrival_time": "19:12",
+              "day_offset": 1
+            }
+          }
+        },
+        "SE8": {
+          "train_code": "SE8",
+          "stations": {
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 0,
+              "departure_time": "06:00",
+              "arrival_time": "06:00",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 411,
+              "departure_time": "13:45",
+              "arrival_time": "13:45",
+              "day_offset": 0
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 935,
+              "departure_time": "23:20",
+              "arrival_time": "23:20",
+              "day_offset": 0
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 1407,
+              "departure_time": "09:44",
+              "arrival_time": "09:44",
+              "day_offset": 1
+            },
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 1726,
+              "departure_time": "16:10",
+              "arrival_time": "16:10",
+              "day_offset": 1
+            }
+          }
+        },
+        "SE10": {
+          "train_code": "SE10",
+          "stations": {
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 0,
+              "departure_time": "13:20",
+              "arrival_time": "13:20",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 411,
+              "departure_time": "22:30",
+              "arrival_time": "22:30",
+              "day_offset": 0
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 935,
+              "departure_time": "09:06",
+              "arrival_time": "09:06",
+              "day_offset": 1
+            },
+            "vinh": {
+              "station_name": "Vinh",
+              "km": 1407,
+              "departure_time": "20:55",
+              "arrival_time": "20:55",
+              "day_offset": 1
+            },
+            "ha_noi": {
+              "station_name": "Hà Nội",
+              "km": 1726,
+              "departure_time": "04:35",
+              "arrival_time": "04:35",
+              "day_offset": 2
+            }
+          }
+        }
+      }
+    },
+    "saigon_to_danang": {
+      "direction": "Sài Gòn → Đà Nẵng",
+      "trains": {
+        "SE22": {
+          "train_code": "SE22",
+          "route_type": "regional",
+          "stations": {
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 0,
+              "departure_time": "21:15",
+              "arrival_time": "21:15",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 411,
+              "departure_time": "05:20",
+              "arrival_time": "05:20",
+              "day_offset": 1
+            },
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 935,
+              "departure_time": "15:45",
+              "arrival_time": "15:45",
+              "day_offset": 1
+            }
+          }
+        }
+      }
+    },
+    "danang_to_saigon": {
+      "direction": "Đà Nẵng → Sài Gòn",
+      "trains": {
+        "SE21": {
+          "train_code": "SE21",
+          "route_type": "regional",
+          "stations": {
+            "da_nang": {
+              "station_name": "Đà Nẵng",
+              "km": 0,
+              "departure_time": "08:30",
+              "arrival_time": "08:30",
+              "day_offset": 0
+            },
+            "nha_trang": {
+              "station_name": "Nha Trang",
+              "km": 524,
+              "departure_time": "18:45",
+              "arrival_time": "18:45",
+              "day_offset": 0
+            },
+            "sai_gon": {
+              "station_name": "Sài Gòn",
+              "km": 935,
+              "departure_time": "02:10",
+              "arrival_time": "02:10",
+              "day_offset": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "metadata": {
+    "source": "Đường sắt Việt Nam",
+    "last_updated": "2024",
+    "notes": {
+      "day_offset": "0 = cùng ngày, 1 = ngày hôm sau, 2 = 2 ngày sau xuất phát",
+      "time_format": "HH:MM (24h)",
+      "distance_unit": "km",
+      "special_trains": [
+        "SE9/SE10: Tàu chạy mùa hè",
+        "SE5: Xuất phát từ Hà Nội khoảng 15h30 (tàu ban ngày)",
+        "SE6: Xuất phát từ TP.HCM khoảng 15h (tàu ban ngày)",
+        "SE21/SE22: Tàu chạy hàng ngày trên tuyến TP. Hồ Chí Minh – Đà Nẵng"
+      ]
+    }
+  }
+}

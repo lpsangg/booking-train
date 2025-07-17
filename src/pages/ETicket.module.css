@@ -1,0 +1,233 @@
+/* E-Ticket page styles */ 
+
+/* --- Modern E-Ticket Redesign --- */
+
+.container {
+  width: 100vw;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f7f7fa 60%, #e9edfa 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 32px 0;
+}
+
+.header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0;
+  background: linear-gradient(90deg, #2346a0 80%, #3a6cf0 100%);
+  color: #fff;
+  min-height: 72px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 2px 12px #2346a022;
+}
+
+.backBtn {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  font-size: 22px;
+  cursor: pointer;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  margin: 0;
+}
+.backBtn:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.headerTitle {
+  flex: none;
+  margin: 0 auto;
+  text-align: center;
+  color: #fff;
+  letter-spacing: 1px;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.headerRight {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.ticketWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 32px 0 20px 0;
+}
+
+.ticketCard {
+  width: 370px;
+  background: linear-gradient(180deg, #fff 80%, #e9edfa 100%);
+  border-radius: 28px;
+  box-shadow: 0 6px 24px #2346a022;
+  padding: 0 0 32px 0;
+  position: relative;
+  overflow: visible;
+  border: 1.5px solid #e3e8f7;
+}
+.ticketCard::before, .ticketCard::after {
+  content: '';
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  background: #f7f7fa;
+  border-radius: 50%;
+  top: 120px;
+  z-index: 2;
+}
+.ticketCard::before { left: -16px; }
+.ticketCard::after { right: -16px; }
+
+.ticketTop {
+  padding: 32px 28px 0 28px;
+}
+
+.trainInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: #2346a0;
+  margin-bottom: 10px;
+}
+.trainCode {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #2346a0;
+  background: #e9edfa;
+  padding: 4px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #2346a011;
+  letter-spacing: 1px;
+}
+.date {
+  font-size: 1.08rem;
+  color: #3a6cf0;
+  font-weight: 700;
+  background: #f7f7fa;
+  padding: 4px 12px;
+  border-radius: 10px;
+}
+
+.timeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+.timeCol {
+  text-align: center;
+  flex: 1;
+}
+.time {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #2346a0;
+}
+.station {
+  font-size: 1.05rem;
+  color: #3a6cf0;
+  font-weight: 600;
+}
+.duration {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 8px;
+}
+.trainIcon {
+  font-size: 1.7rem;
+}
+.durationText {
+  font-size: 1.05rem;
+  color: #e53935;
+  font-weight: 600;
+}
+
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-size: 1.05rem;
+  color: #233366;
+  margin-bottom: 10px;
+  background: #f7f7fa;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 600;
+  gap: 4px;
+}
+
+.qrSection {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 18px;
+  padding: 18px 0 0 0;
+}
+.qr {
+  width: 190px;
+  height: 190px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 16px #2346a022;
+  border: 2px solid #e3e8f7;
+}
+.qrSection span {
+  margin-top: 10px;
+  color: #888;
+  font-size: 0.98rem;
+  font-style: italic;
+}
+
+.printBtn {
+  width: 370px;
+  background: linear-gradient(90deg, #2346a0 80%, #3a6cf0 100%);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: 24px;
+  box-shadow: 0 4px 16px #2346a022;
+  padding: 14px 0;
+  border: none;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: block;
+  letter-spacing: 1px;
+}
+.printBtn:hover {
+  background: linear-gradient(90deg, #1a357a 80%, #2346a0 100%);
+}
+
+/* Remove unused styles */
+.avatar, .name, .info, .bed, .passengerRow { display: none !important; } 

@@ -1,0 +1,218 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ẩn thanh cuộn */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ẩn thanh cuộn cho Firefox */
+* {
+  scrollbar-width: none;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.custom-calendar-popup {
+  font-size: 13px !important;
+  min-width: 260px !important;
+  max-width: 300px !important;
+  padding: 6px !important;
+}
+.custom-calendar-popup .rdrCalendarWrapper {
+  font-size: 13px !important;
+  padding: 0 !important;
+}
+.custom-calendar-popup .rdrMonthAndYearWrapper {
+  padding: 4px 0 !important;
+}
+.custom-calendar-popup .rdrMonth {
+  padding: 0 0 4px 0 !important;
+}
+.custom-calendar-popup .rdrWeekDays {
+  margin-bottom: 2px !important;
+}
+.custom-calendar-popup .rdrDay {
+  height: 28px !important;
+  width: 28px !important;
+  margin: 1px !important;
+}
+.custom-calendar-popup .rdrDayNumber span {
+  font-size: 12px !important;
+}
+.custom-calendar-popup .rdrDayToday .rdrDayNumber span {
+  font-weight: bold !important;
+}
+.custom-calendar-popup .rdrMonthsVertical {
+  gap: 0 !important;
+}
+.custom-calendar-popup .rdrMonthPicker, .custom-calendar-popup .rdrYearPicker {
+  font-size: 12px !important;
+  padding: 0 2px !important;
+}
+.custom-calendar-popup .rdrNextPrevButton {
+  width: 24px !important;
+  height: 24px !important;
+}
+.custom-calendar-popup .rdrDateDisplayWrapper {
+  display: none !important;
+}
+
+.custom-calendar-popup .rdrDays {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 1px !important;
+}
+
+.custom-calendar-popup .rdrWeekDay {
+  font-size: 12px !important;
+  position: relative;
+  color: #233366 !important;
+}
+.custom-calendar-popup .rdrWeekDay {
+  color: transparent !important;
+}
+.custom-calendar-popup .rdrWeekDay:nth-child(1)::after { content: 'S'; color: #233366; }
+.custom-calendar-popup .rdrWeekDay:nth-child(2)::after { content: 'M'; color: #233366; }
+.custom-calendar-popup .rdrWeekDay:nth-child(3)::after { content: 'T'; color: #233366; }
+.custom-calendar-popup .rdrWeekDay:nth-child(4)::after { content: 'W'; color: #233366; }
+.custom-calendar-popup .rdrWeekDay:nth-child(5)::after { content: 'T'; color: #233366; }
+.custom-calendar-popup .rdrWeekDay:nth-child(6)::after { content: 'F'; color: #233366; }
+.custom-calendar-popup .rdrWeekDay:nth-child(7)::after { content: 'S'; color: #233366; }

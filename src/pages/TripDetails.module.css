@@ -1,0 +1,135 @@
+/* Trip Details page styles */ 
+
+.container {
+  width: 100vw;
+  min-height: 100vh;
+  background: #f7f7fa;
+  border-radius: 0;
+  padding: 32px 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.card {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(35,70,160,0.08);
+  padding: 28px 24px 24px 24px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #233366;
+  margin: 0;
+}
+
+.cancelBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  color: #2346a0;
+  font-weight: 500;
+}
+
+.formRow {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.formGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 1rem;
+  color: #888;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  font-size: 1rem;
+  margin-bottom: 0;
+  background: #f7f7fa;
+}
+
+.checkboxRow {
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.filterRow {
+  display: flex;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.filterGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sortRow, .ratingRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sortRow button, .ratingRow button {
+  background: #f7f7fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 1rem;
+  color: #233366;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+
+.active {
+  background: #2346a0 !important;
+  color: #fff !important;
+  border: 1px solid #2346a0 !important;
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.slider {
+  flex: 1;
+  accent-color: #2346a0;
+  margin: 0 4px;
+}
+
+.priceValue {
+  font-size: 1rem;
+  color: #233366;
+  font-weight: 600;
+} 

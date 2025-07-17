@@ -1,0 +1,633 @@
+/* Login page styles */ 
+
+.container {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.backBtn {
+  position: absolute;
+  top: 24px;
+  left: 16px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.logo {
+  width: 90px;
+  margin: 32px auto 0 auto;
+  display: block;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #233366;
+  margin: 24px 0 16px 0;
+  text-align: left;
+  width: 100%;
+}
+
+.form {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.input {
+  width: 100%;
+  margin-bottom: 16px;
+  background: #f7f7fa;
+  border-radius: 12px;
+  border: none;
+  padding: 12px 16px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+}
+
+.passwordRow {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.eyeBtn {
+  background: none;
+  border: none;
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.forgotRow {
+  text-align: right;
+  margin-bottom: 16px;
+}
+
+.forgotLink {
+  color: #2346a0;
+  font-size: 0.98rem;
+  text-decoration: none;
+}
+
+.loginBtn {
+  width: 100%;
+  background: #2346a0;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(35,70,160,0.13);
+  padding: 12px 0;
+  border: none;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.loginBtn:hover {
+  background: #1a357a;
+}
+
+.orRow {
+  position: absolute;
+  top: 470px;
+  left: 15px;
+  width: 330px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.orText {
+  margin: 0 12px;
+  color: #26457c;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+}
+
+.socialRow {
+  position: absolute;
+  top: 500px;
+  left: 15px;
+  width: 330px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+.socialBtn {
+  width: 65px;
+  height: 39px;
+  border-radius: 10px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 4px 4px #00000020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.socialBtn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.registerRow {
+  position: absolute;
+  top: 560px;
+  left: 15px;
+  width: 330px;
+  text-align: center;
+  font-size: 1rem;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+}
+
+.registerLink {
+  color: #26457c;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 2px;
+}
+
+.skipBtn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Login page styles mobile mockup */
+
+.bgCenter {
+  width: 100vw;
+  height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  position: relative;
+  width: 360px;
+  height: 800px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(35,70,160,0.10);
+  overflow: hidden;
+}
+
+.backBtn {
+  position: absolute;
+  top: 24px;
+  left: 16px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBtn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  position: absolute;
+  top: 26px;
+  right: 12px;
+  width: 79px;
+  height: 86px;
+  object-fit: contain;
+}
+
+.title {
+  position: absolute;
+  top: 127px;
+  left: 17px;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: #26457c;
+  line-height: 43px;
+  text-align: left;
+}
+
+.inputWrap {
+  position: absolute;
+  left: 17px;
+  width: 333px;
+}
+
+.input {
+  width: 331px;
+  height: 55px;
+  background: #f3f3f3;
+  border-radius: 10px;
+  box-shadow: 0px 4px 4px #00000040;
+  border: none;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #676767;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.inputIcon {
+  width: 23px;
+  height: 26px;
+  margin-right: 10px;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.eyeIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.forgotRow {
+  position: absolute;
+  top: 355px;
+  right: 17px;
+}
+
+.forgotLink {
+  color: #26457c;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.loginBtn {
+  position: absolute;
+  top: 400px;
+  left: 101px;
+  width: 157px;
+  height: 45px;
+  background: #26457c;
+  color: #fff;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(35,70,160,0.13);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.socialSection {
+  position: absolute;
+  left: 15px;
+  top: 470px;
+  width: 335px;
+  height: 172px;
+}
+
+.socialRow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  margin-top: 8px;
+}
+
+.socialBtn {
+  width: 65px;
+  height: 39px;
+  border-radius: 10px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 4px 4px #00000020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.socialBtn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.registerRow {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  margin-top: 18px;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+}
+
+.registerLink {
+  color: #26457c;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 2px;
+}
+
+.skipBtn {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  background: none;
+  border: none;
+  color: #26457c;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Login page styles giống Register */
+
+.screenCenter {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+
+.phoneCard {
+  width: 360px;
+  height: 800px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+}
+
+.logoRailway {
+  position: absolute;
+  top: 32px;
+  right: 24px;
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  z-index: 2;
+}
+
+.backBtn {
+  position: absolute;
+  top: 32px;
+  left: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.title {
+  position: absolute;
+  top: 110px;
+  left: 24px;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #233366;
+  margin: 0;
+  text-align: left;
+  line-height: 1.1;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+}
+
+.inputGroup {
+  position: absolute;
+  left: 15px;
+  width: 330px;
+  height: 55px;
+  background: #f3f3f3;
+  border-radius: 16px;
+  box-shadow: 0 4px 8px #00000010;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  padding: 0 16px;
+}
+
+.inputIcon {
+  width: 28px;
+  height: 28px;
+  margin-left: 0;
+  margin-right: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1.15rem;
+  color: #233366;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+  padding-left: 0;
+  height: 55px;
+  font-weight: 500;
+}
+
+.input::placeholder {
+  color: #676767;
+  opacity: 1;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.eyeBtn {
+  background: none;
+  border: none;
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.eyeBtn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.forgotRow {
+  position: absolute;
+  top: 345px;
+  right: 24px;
+}
+
+.forgotLink {
+  color: #26457c;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  text-decoration: none;
+}
+
+.loginBtn {
+  position: absolute;
+  left: 11px;
+  top: 400px;
+  width: 339px;
+  height: 45px;
+  background: #26457c;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(35,70,160,0.13);
+  border: none;
+  cursor: pointer;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+}
+
+.socialSection {
+  position: absolute;
+  left: 15px;
+  top: 470px;
+  width: 335px;
+  height: 172px;
+}
+
+.socialRow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  margin-top: 8px;
+}
+
+.socialBtn {
+  width: 65px;
+  height: 39px;
+  border-radius: 10px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 4px 4px #00000020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.socialBtn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.registerRow {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  margin-top: 18px;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+}
+
+.registerLink {
+  color: #26457c;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 2px;
+}
+
+.skipBtn {
+  position: absolute;
+  right: 24px;
+  bottom: 16px;
+  background: none;
+  border: none;
+  color: #26457c;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  cursor: pointer;
+  text-decoration: underline;
+} 

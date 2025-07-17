@@ -1,0 +1,224 @@
+/* Register page styles */ 
+
+.container {
+  width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #fff;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.backBtn {
+  position: absolute;
+  top: 32px;
+  left: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.logo {
+  width: 90px;
+  margin: 32px auto 0 auto;
+  display: block;
+}
+
+.title {
+  position: absolute;
+  top: 110px;
+  left: 24px;
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #233366;
+  margin: 0;
+  text-align: left;
+  line-height: 1.1;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+}
+
+.form {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.inputGroup {
+  position: absolute;
+  left: 15px;
+  width: 330px;
+  height: 55px;
+  background: #f3f3f3;
+  border-radius: 10px;
+  box-shadow: 0 4px 4px #00000010;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.inputIcon {
+  width: 24px;
+  height: 24px;
+  margin-left: 12px;
+  margin-right: 8px;
+  object-fit: contain;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1.1rem;
+  color: #233366;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+  padding-left: 0;
+}
+
+.eyeBtn {
+  background: none;
+  border: none;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.createBtn {
+  position: absolute;
+  left: 11px;
+  top: 507px;
+  width: 339px;
+  height: 45px;
+  background: #26457c;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(35,70,160,0.13);
+  border: none;
+  cursor: pointer;
+  font-family: 'Montserrat', Helvetica, Arial, sans-serif;
+}
+
+.socialSection {
+  position: absolute;
+  left: 15px;
+  top: 577px;
+  width: 335px;
+  height: 172px;
+}
+
+.orRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.orText {
+  margin: 0 12px;
+  color: #26457c;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+}
+
+.socialRow {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  margin-top: 8px;
+}
+
+.socialBtn {
+  width: 65px;
+  height: 39px;
+  border-radius: 10px;
+  background: #fff;
+  border: none;
+  box-shadow: 0 4px 4px #00000020;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.socialBtn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.loginRow {
+  width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  margin-top: 18px;
+  font-family: 'Urbanist', Helvetica, Arial, sans-serif;
+}
+
+.loginLink {
+  color: #26457c;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 2px;
+}
+
+.screenCenter {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+
+.phoneCard {
+  width: 360px;
+  height: 800px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+}
+
+.logoRailway {
+  position: absolute;
+  top: 32px;
+  right: 24px;
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  z-index: 2;
+} 

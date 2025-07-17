@@ -1,0 +1,199 @@
+/* Select Train page styles */ 
+
+.container {
+  width: 100vw;
+  min-height: 100vh;
+  background: #f7f7fa;
+  border-radius: 0;
+  padding: 0 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.topInfo {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 16px 0 16px;
+  background: #fff;
+  border-radius: 0 0 0 0;
+  color: #2346a0;
+  min-height: 64px;
+  box-sizing: border-box;
+  gap: 18px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arrow {
+  font-size: 1.3rem;
+  margin: 0 6px;
+}
+
+.date, .passenger {
+  background: #f7f7fa;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 1rem;
+  color: #2346a0;
+}
+
+.mainContent {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  margin-top: 18px;
+  justify-content: center;
+}
+
+.filter {
+  width: 220px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(35,70,160,0.08);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  font-size: 1rem;
+}
+
+.filterTitle {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.filterGroup {
+  margin-bottom: 8px;
+}
+
+.filterLabel {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.filterOptions label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 400;
+  font-size: 0.98rem;
+}
+
+.ticketList {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ticketCard {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(35,70,160,0.08);
+  padding: 16px 18px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bestLabel {
+  color: #2346a0;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.ticketRow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.timeCol {
+  min-width: 80px;
+  text-align: center;
+}
+
+.depart, .arrive {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2346a0;
+}
+
+.from, .to {
+  font-size: 0.98rem;
+  color: #888;
+}
+
+.arrowCol {
+  min-width: 60px;
+  text-align: center;
+}
+
+.arrowBig {
+  font-size: 1.5rem;
+  color: #2346a0;
+}
+
+.duration {
+  font-size: 0.92rem;
+  color: #888;
+}
+
+.infoCol {
+  min-width: 90px;
+  text-align: left;
+}
+
+.train {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2346a0;
+}
+
+.seat {
+  font-size: 0.98rem;
+  color: #888;
+}
+
+.priceCol {
+  min-width: 110px;
+  text-align: right;
+}
+
+.price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e53935;
+  margin-bottom: 8px;
+}
+
+.bookBtn {
+  width: 90px;
+  background: #2346a0;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(35,70,160,0.13);
+  padding: 8px 0;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.bookBtn:hover {
+  background: #1a357a;
+} 
