@@ -1,49 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import Card from '../components/Card';
+import { TRAINS, searchTrains, getTrainById, type Train } from '../mockData';
 import styles from './SelectTrain.module.css';
-
-const tickets = [
-  {
-    id: 1,
-    best: true,
-    depart: '12:50',
-    arrive: '03:40',
-    from: 'Ga Hà Nội',
-    to: 'Ga Sài Gòn',
-    train: 'SE9',
-    seat: 'Ngồi mềm',
-    price: '1.017.000đ',
-    duration: '1 ngày 14h 50p',
-  },
-  {
-    id: 2,
-    best: false,
-    depart: '08:55',
-    arrive: '20:20',
-    from: 'Ga Hà Nội',
-    to: 'Ga Sài Gòn',
-    train: 'SE5',
-    seat: 'Nằm khoang 6',
-    price: '1.017.000đ',
-    duration: '1 ngày 11h 25p',
-  },
-];
 
 const SelectTrain = () => {
   const [selectedType, setSelectedType] = useState('all');
+  const [availableTrains, setAvailableTrains] = useState<Train[]>([]);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Lấy thông tin từ URL search params
+  const searchParams = new URLSearchParams(location.search);
+  const from = searchParams.get('from') || '';
+  const to = searchParams.get('to') || '';
+  const date = searchParams.get('date') || '';
+  const passengers = searchParams.get('passengers') || '[]';
+
+  const parsedPassengers = JSON.parse(decodeURIComponent(passengers));
+  const totalPassengers = Object.values(parsedPassengers).reduce((sum: number, count) => sum + (count as number), 0);
+
+  useEffect(() => {
+    // Tìm kiếm tàu dựa trên route
+    const trains = searchTrains(from, to);
+    setAvailableTrains(trains);
+    setLoading(false);
+  }, [from, to]);
+
+  const formatDuration = (duration: string): string => {
+    // Convert duration like "32h30m" to "1 ngày 8h 30p"
+    const hours = parseInt(duration.match(/(\d+)h/)?.[1] || '0');
+    const minutes = parseInt(duration.match(/(\d+)m/)?.[1] || '0');
+    
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    
+    if (days > 0) {
+      return `${days} ngày ${remainingHours}h ${minutes}p`;
+    }
+    return `${remainingHours}h ${minutes}p`;
+  };
+
+  const calculatePrice = (train: Train, coachType: string): string => {
+    const coach = train.coaches.find(c => c.type.toLowerCase().replace(/[-\s]/g, '_') === coachType);
+    const price = coach?.basePrice || 500000;
+    const finalPrice = price * totalPassengers;
+    
+    return finalPrice.toLocaleString('vi-VN') + 'đ';
+  };
+
+  const getCoachDisplayName = (coachType: string): string => {
+    switch (coachType) {
+      case 'soft_seat': return 'Ngồi mềm';
+      case '6_berth_cabin': return 'Nằm khoang 6';
+      case '4_berth_cabin': return 'Nằm khoang 4';
+      default: return coachType;
+    }
+  };
+
+  const getRouteDisplay = (route: { from: string; to: string }) => {
+    return `${route.from} → ${route.to}`;
+  };
+
+  const handleSelectTrain = (trainId: string, coachType: string) => {
+    const selectedTrain = getTrainById(trainId);
+    if (!selectedTrain) return;
+
+    const params = new URLSearchParams({
+      from,
+      to,
+      date,
+      passengers,
+      trainId,
+      coachType
+    });
+
+    navigate(`/select-seat?${params.toString()}`);
+  };
+
+  if (loading) {
+    return <div className={styles.container}>Đang tìm kiếm tàu...</div>;
+  }
 
   return (
     <div className={styles.container}>
       {/* Top info */}
       <div className={styles.topInfo}>
         <div className={styles.route}>
-          <span>Hà Nội</span>
+          <span>{from}</span>
           <span className={styles.arrow}>→</span>
-          <span>Hồ Chí Minh</span>
+          <span>{to}</span>
         </div>
-        <div className={styles.date}>T6, 18/07/2025</div>
-        <div className={styles.passenger}>1 Hành khách</div>
+        <div className={styles.date}>{new Date(date).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+        <div className={styles.passenger}>{totalPassengers} Hành khách</div>
       </div>
       <div className={styles.mainContent}>
         {/* Filter */}
@@ -80,33 +131,44 @@ const SelectTrain = () => {
         </div>
         {/* Ticket list */}
         <div className={styles.ticketList}>
-          {tickets.map((ticket, idx) => (
-            <Card className={styles.ticketCard} key={ticket.id}>
-              {ticket.best && <div className={styles.bestLabel}>Chọn vé đi Hồ Chí Minh tốt nhất</div>}
-              <div className={styles.ticketRow}>
-                <div className={styles.timeCol}>
-                  <div className={styles.depart}>{ticket.depart}</div>
-                  <div className={styles.from}>{ticket.from}</div>
-                </div>
-                <div className={styles.arrowCol}>
-                  <span className={styles.arrowBig}>→</span>
-                  <div className={styles.duration}>{ticket.duration}</div>
-                </div>
-                <div className={styles.timeCol}>
-                  <div className={styles.arrive}>{ticket.arrive}</div>
-                  <div className={styles.to}>{ticket.to}</div>
-                </div>
-                <div className={styles.infoCol}>
-                  <div className={styles.train}>Tàu {ticket.train}</div>
-                  <div className={styles.seat}>{ticket.seat}</div>
-                </div>
-                <div className={styles.priceCol}>
-                  <div className={styles.price}>{ticket.price}</div>
-                  <Button className={styles.bookBtn}>Đặt vé</Button>
-                </div>
-              </div>
-            </Card>
-          ))}
+          {availableTrains.length === 0 ? (
+            <div className={styles.noResults}>Không tìm thấy chuyến tàu phù hợp</div>
+          ) : (
+            availableTrains.map((train, idx) => (
+              train.coaches.map((coach, coachIdx) => (
+                <Card className={styles.ticketCard} key={`${train.id}-${coach.id}`}>
+                  {idx === 0 && coachIdx === 0 && <div className={styles.bestLabel}>Chọn vé đi {to} tốt nhất</div>}
+                  <div className={styles.ticketRow}>
+                    <div className={styles.timeCol}>
+                      <div className={styles.depart}>{train.schedule.departureTime}</div>
+                      <div className={styles.from}>{train.route.from}</div>
+                    </div>
+                    <div className={styles.arrowCol}>
+                      <span className={styles.arrowBig}>→</span>
+                      <div className={styles.duration}>{formatDuration(train.schedule.duration)}</div>
+                    </div>
+                    <div className={styles.timeCol}>
+                      <div className={styles.arrive}>{train.schedule.arrivalTime}</div>
+                      <div className={styles.to}>{train.route.to}</div>
+                    </div>
+                    <div className={styles.infoCol}>
+                      <div className={styles.train}>Tàu {train.id}</div>
+                      <div className={styles.seat}>{coach.type}</div>
+                    </div>
+                    <div className={styles.priceCol}>
+                      <div className={styles.price}>{calculatePrice(train, coach.type.toLowerCase().replace(/[-\s]/g, '_'))}</div>
+                      <Button 
+                        className={styles.bookBtn}
+                        onClick={() => handleSelectTrain(train.id, coach.type.toLowerCase().replace(/[-\s]/g, '_'))}
+                      >
+                        Đặt vé
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            ))
+          )}
         </div>
       </div>
     </div>

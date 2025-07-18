@@ -2928,7 +2928,7 @@ useEffect(() => {
                   );
                 })}
               </div>
-              {/* Smooth Dual Range Slider */}
+              {/* Custom Dual Range Slider */}
               <div 
                 className="dual-range-container"
                 style={{ 
@@ -2938,7 +2938,8 @@ useEffect(() => {
                   padding: '16px 8px', 
                   background: 'none', 
                   height: 60,
-                  overflow: 'visible'
+                  overflow: 'visible',
+                  pointerEvents: 'auto'
                 }}
               >
                 {/* Track background */}
@@ -2963,105 +2964,92 @@ useEffect(() => {
                   background: '#ec407a',
                   borderRadius: 4,
                   transform: 'translateY(-50%)',
-                  pointerEvents: 'none',
-                  transition: 'all 0.1s ease-out'
+                  pointerEvents: 'none'
                 }} />
                 
-                {/* Min Range Input */}
-                <input
-                  type="range"
-                  min={minPrice}
-                  max={maxPrice}
-                  step={2500}
-                  value={filterMinPrice}
-                  onInput={(e) => {
-                    const newMin = parseInt((e.target as HTMLInputElement).value);
-                    if (newMin <= filterMaxPrice) {
-                      setFilterMinPrice(newMin);
-                    }
-                  }}
-                  onChange={(e) => {
-                    const newMin = parseInt((e.target as HTMLInputElement).value);
-                    if (newMin <= filterMaxPrice) {
-                      setFilterMinPrice(newMin);
-                    }
-                  }}
-                  onMouseUp={(e) => {
-                    const newMin = parseInt((e.target as HTMLInputElement).value);
-                    if (isFilterActive) {
+                {/* Container cho min slider */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  pointerEvents: 'auto'
+                }}>
+                  <input
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    step={10000}
+                    value={filterMinPrice}
+                    onChange={(e) => {
+                      const newMin = parseInt((e.target as HTMLInputElement).value);
+                      if (newMin <= filterMaxPrice) {
+                        setFilterMinPrice(newMin);
+                        handleSliderChange([newMin, filterMaxPrice]);
+                      }
+                    }}
+                    onMouseUp={(e) => {
+                      const newMin = parseInt((e.target as HTMLInputElement).value);
                       handlePriceRangeChange([newMin, filterMaxPrice]);
-                    }
-                  }}
-                  onTouchEnd={(e) => {
-                    const newMin = parseInt((e.target as HTMLInputElement).value);
-                    if (isFilterActive) {
-                      handlePriceRangeChange([newMin, filterMaxPrice]);
-                    }
-                  }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    WebkitAppearance: 'none',
-                    appearance: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    zIndex: 1,
-                    margin: 0,
-                    padding: 0
-                  }}
-                />
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      appearance: 'none',
+                      background: 'transparent',
+                      pointerEvents: 'auto',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      zIndex: filterMinPrice > filterMaxPrice - (maxPrice - minPrice) * 0.05 ? 2 : 1
+                    }}
+                  />
+                </div>
                 
-                {/* Max Range Input */}
-                <input
-                  type="range"
-                  min={minPrice}
-                  max={maxPrice}
-                  step={2500}
-                  value={filterMaxPrice}
-                  onInput={(e) => {
-                    const newMax = parseInt((e.target as HTMLInputElement).value);
-                    if (newMax >= filterMinPrice) {
-                      setFilterMaxPrice(newMax);
-                    }
-                  }}
-                  onChange={(e) => {
-                    const newMax = parseInt((e.target as HTMLInputElement).value);
-                    if (newMax >= filterMinPrice) {
-                      setFilterMaxPrice(newMax);
-                    }
-                  }}
-                  onMouseUp={(e) => {
-                    const newMax = parseInt((e.target as HTMLInputElement).value);
-                    if (isFilterActive) {
+                {/* Container cho max slider */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  pointerEvents: 'auto'
+                }}>
+                  <input
+                    type="range"
+                    min={minPrice}
+                    max={maxPrice}
+                    step={10000}
+                    value={filterMaxPrice}
+                    onChange={(e) => {
+                      const newMax = parseInt((e.target as HTMLInputElement).value);
+                      if (newMax >= filterMinPrice) {
+                        setFilterMaxPrice(newMax);
+                        handleSliderChange([filterMinPrice, newMax]);
+                      }
+                    }}
+                    onMouseUp={(e) => {
+                      const newMax = parseInt((e.target as HTMLInputElement).value);
                       handlePriceRangeChange([filterMinPrice, newMax]);
-                    }
-                  }}
-                  onTouchEnd={(e) => {
-                    const newMax = parseInt((e.target as HTMLInputElement).value);
-                    if (isFilterActive) {
-                      handlePriceRangeChange([filterMinPrice, newMax]);
-                    }
-                  }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    WebkitAppearance: 'none',
-                    appearance: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    zIndex: 2,
-                    margin: 0,
-                    padding: 0
-                  }}
-                />
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      appearance: 'none',
+                      background: 'transparent',
+                      pointerEvents: 'auto',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      zIndex: filterMaxPrice < filterMinPrice + (maxPrice - minPrice) * 0.05 ? 2 : 1
+                    }}
+                  />
+                </div>
                 
                 {/* Min handle */}
                 <div 
@@ -3069,22 +3057,21 @@ useEffect(() => {
                     position: 'absolute',
                     top: '50%',
                     left: `${8 + ((filterMinPrice - minPrice) / (maxPrice - minPrice)) * (100 - 16)}%`,
-                    width: 24,
-                    height: 24,
+                    width: 28,
+                    height: 28,
                     background: '#fff',
                     border: '3px solid #ec407a',
                     borderRadius: '50%',
                     transform: 'translate(-50%, -50%)',
                     boxShadow: '0 2px 8px rgba(236, 64, 122, 0.3)',
                     pointerEvents: 'none',
-                    zIndex: 4,
+                    zIndex: 3,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 7,
+                    fontSize: 8,
                     fontWeight: 700,
-                    color: '#ec407a',
-                    transition: 'left 0.1s ease-out'
+                    color: '#ec407a'
                   }}
                 >
                   MIN
@@ -3096,28 +3083,26 @@ useEffect(() => {
                     position: 'absolute',
                     top: '50%',
                     left: `${8 + ((filterMaxPrice - minPrice) / (maxPrice - minPrice)) * (100 - 16)}%`,
-                    width: 24,
-                    height: 24,
+                    width: 28,
+                    height: 28,
                     background: '#fff',
                     border: '3px solid #ec407a',
                     borderRadius: '50%',
                     transform: 'translate(-50%, -50%)',
                     boxShadow: '0 2px 8px rgba(236, 64, 122, 0.3)',
                     pointerEvents: 'none',
-                    zIndex: 4,
+                    zIndex: 3,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 7,
+                    fontSize: 8,
                     fontWeight: 700,
-                    color: '#ec407a',
-                    transition: 'left 0.1s ease-out'
+                    color: '#ec407a'
                   }}
                 >
                   MAX
                 </div>
               </div>
-
               {/* Min/max price and label */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 8 }}>
                 <div style={{ textAlign: 'center', flex: 1 }}>
@@ -3343,60 +3328,6 @@ useEffect(() => {
         </div>
       )}
       <style>{`
-        /* Dual Range Slider Styles */
-        .dual-range-container input[type="range"] {
-          -webkit-appearance: none;
-          appearance: none;
-          background: transparent;
-          cursor: pointer;
-          outline: none;
-        }
-        
-        .dual-range-container input[type="range"]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #fff;
-          border: 3px solid #ec407a;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(236, 64, 122, 0.3);
-          transition: all 0.15s ease-out;
-        }
-        
-        .dual-range-container input[type="range"]::-webkit-slider-thumb:hover {
-          box-shadow: 0 4px 12px rgba(236, 64, 122, 0.4);
-          transform: scale(1.05);
-        }
-        
-        .dual-range-container input[type="range"]::-webkit-slider-thumb:active {
-          box-shadow: 0 6px 16px rgba(236, 64, 122, 0.5);
-          transform: scale(1.1);
-        }
-        
-        .dual-range-container input[type="range"]::-moz-range-thumb {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #fff;
-          border: 3px solid #ec407a;
-          cursor: pointer;
-          box-shadow: 0 2px 8px rgba(236, 64, 122, 0.3);
-          transition: all 0.15s ease-out;
-        }
-        
-        .dual-range-container input[type="range"]::-moz-range-thumb:hover {
-          box-shadow: 0 4px 12px rgba(236, 64, 122, 0.4);
-          transform: scale(1.05);
-        }
-        
-        .dual-range-container input[type="range"]::-moz-range-thumb:active {
-          box-shadow: 0 6px 16px rgba(236, 64, 122, 0.5);
-          transform: scale(1.1);
-        }
-        
-        /* Radio button styles */
         input[type='radio'] {
           appearance: none;
           -webkit-appearance: none;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import logoRailway from '../assets/logo-railway.png';
 import Slider from 'rc-slider';
@@ -505,11 +505,49 @@ function parseTrainsFromDataTau(from: string, to: string): Train[] {
   const fromNorm = normalize(from);
   const toNorm = normalize(to);
 
+  // Định nghĩa routes cho từng loại tàu
+  const trainRouteRestrictions: Record<string, { allowedStations: string[], description: string }> = {
+    'SE5': { 
+      allowedStations: ['hà nội', 'vinh', 'đà nẵng'], 
+      description: 'Chạy tuyến Hà Nội - Đà Nẵng' 
+    },
+    'SE6': { 
+      allowedStations: ['hà nội', 'vinh', 'đà nẵng'], 
+      description: 'Chạy tuyến Hà Nội - Đà Nẵng' 
+    },
+    'SE22': { 
+      allowedStations: ['sài gòn', 'nha trang', 'đà nẵng'], 
+      description: 'Chạy tuyến Sài Gòn - Đà Nẵng' 
+    }
+  };
+
+  // Function to check if a train can serve the requested route
+  const canTrainServeRoute = (trainCode: string, fromStation: string, toStation: string): boolean => {
+    const restrictions = trainRouteRestrictions[trainCode];
+    if (!restrictions) {
+      // Tàu không có hạn chế (SE1, SE2, SE3, SE4, SE7, SE8, SE9, SE10) - chạy toàn tuyến
+      return true;
+    }
+    
+    // Kiểm tra xem cả ga đi và ga đến có trong danh sách allowed stations không
+    const fromAllowed = restrictions.allowedStations.includes(fromStation);
+    const toAllowed = restrictions.allowedStations.includes(toStation);
+    
+    return fromAllowed && toAllowed;
+  };
+
   // Duyệt qua tất cả các tuyến trong dataTau.train_schedules
   for (const routeKey in dataTau.train_schedules as Record<string, DataTauDirection>) {
     const route = (dataTau.train_schedules as Record<string, DataTauDirection>)[routeKey];
     for (const trainKey in route.trains) {
       const train = route.trains[trainKey] as any;
+      
+      // Kiểm tra xem tàu này có thể phục vụ route được yêu cầu không
+      if (!canTrainServeRoute(train.train_code, fromNorm, toNorm)) {
+        console.log(`Tàu ${train.train_code} không phục vụ tuyến ${from} → ${to}, bỏ qua.`);
+        continue;
+      }
+      
       const stationsArr = Object.values(train.stations) as Array<{
         station_name: string;
         km: number;
@@ -716,6 +754,26 @@ const SearchResults = () => {
   const [departTimeFrom, setDepartTimeFrom] = useState('');
   const [departTimeTo, setDepartTimeTo] = useState('');
 
+  // States cho bộ lọc theo Salesforce logic: Record Type và Priority Preference
+  const [selectedRecordTypes, setSelectedRecordTypes] = useState<string[]>(['standard', 'medium_priority', 'high_priority']);
+  const [priorityPreference, setPriorityPreference] = useState<'all' | 'high_only'>('all'); // high_only = priority score >= 6
+  const [maxNoiseLevel, setMaxNoiseLevel] = useState<number>(10); // 1-10 scale
+
+  // State cho histogram giá vé
+  const [showPriceHistogram, setShowPriceHistogram] = useState(false);
+  const [selectedTrainForHistogram, setSelectedTrainForHistogram] = useState<Train | null>(null);
+  const [seatPriceData, setSeatPriceData] = useState<number[]>([]);
+  const [minSeatPrice, setMinSeatPrice] = useState(0);
+  const [maxSeatPrice, setMaxSeatPrice] = useState(0);
+  // State cho khoảng giá vé (cheapest to most expensive ticket)
+  const [minTicketPrice, setMinTicketPrice] = useState(0);
+  const [maxTicketPrice, setMaxTicketPrice] = useState(0);
+  
+  // State cho range slider với tương tác như mẫu
+  const [leftHandle, setLeftHandle] = useState(20);
+  const [rightHandle, setRightHandle] = useState(80);
+  const [isDragging, setIsDragging] = useState<string | null>(null);
+
   // State cho sắp xếp
   const [sortCriterion, setSortCriterion] = useState('duration');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -724,7 +782,16 @@ const SearchResults = () => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
 
   // Parse passenger data (dùng useMemo để tránh tạo object mới mỗi lần render)
-  const passenger: Record<PassengerType, number> = useMemo(() => JSON.parse(searchParams.get('passenger') || '{}'), [searchParams]);
+  const passenger: Record<PassengerType, number> = useMemo(() => {
+    const passengerData = searchParams.get('passengers');
+    if (!passengerData) return { adult: 0, child: 0, elderly: 0, student: 0, union: 0 };
+    try {
+      return JSON.parse(decodeURIComponent(passengerData));
+    } catch (error) {
+      console.error('Error parsing passenger data:', error);
+      return { adult: 0, child: 0, elderly: 0, student: 0, union: 0 };
+    }
+  }, [searchParams]);
 
   // State cho review modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -776,7 +843,7 @@ const SearchResults = () => {
       }
     });
     setOtherTrains(trains);
-  }, [from, to, searchParams.get('departDate'), searchParams.get('returnDate'), searchParams.get('isRoundTrip'), searchParams.get('passenger')]);
+  }, [from, to, searchParams.get('departDate'), searchParams.get('returnDate'), searchParams.get('isRoundTrip'), searchParams.get('passengers')]);
 
   // Hàm tính số phút giữa hai thời điểm dạng 'hh:mm (+n)'
   function diffMinutes(start: string, end: string): number {
@@ -798,7 +865,7 @@ const SearchResults = () => {
   // Hàm tạo danh sách tàu từ dữ liệu JSON
   
   // Hàm chọn tàu
-  const handleSelectTrain = (train: Train) => {
+  const handleSelectTrain = async (train: Train) => {
     console.log('=== DEBUG: handleSelectTrain được gọi ===');
     console.log('Train được chọn:', train);
     console.log('Dữ liệu từ URL params:', {
@@ -809,6 +876,50 @@ const SearchResults = () => {
       isRoundTrip: searchParams.get('isRoundTrip'),
       passenger
     });
+
+    // Hiển thị histogram giá ghế trước khi chuyển trang
+    setSelectedTrainForHistogram(train);
+    setShowPriceHistogram(true);
+    
+    try {
+      console.log(`Fetching seat prices and ticket price range for ${train.id}: ${from} → ${to}`);
+      
+      // Load both seat prices (for histogram) and ticket price range (for min/max display)
+      const [seatPrices, ticketPriceRange] = await Promise.all([
+        fetchSeatPriceData(train.id, from, to),
+        getTicketPriceRange(train.id, from, to)
+      ]);
+      
+      console.log('Loaded seat prices:', seatPrices.length, 'prices');
+      console.log('Ticket price range:', ticketPriceRange);
+      
+      if (seatPrices.length > 0) {
+        setSeatPriceData(seatPrices);
+        // Use seat prices for histogram range (internal calculation)
+        const minPrice = Math.min(...seatPrices);
+        const maxPrice = Math.max(...seatPrices);
+        setMinSeatPrice(minPrice);
+        setMaxSeatPrice(maxPrice);
+        
+        // Initialize slider values with seat price range
+        setFilterMinPrice(minPrice);
+        setFilterMaxPrice(maxPrice);
+        
+        // Use ticket price range for display (cheapest vs most expensive ticket type)
+        setMinTicketPrice(ticketPriceRange.minTicketPrice);
+        setMaxTicketPrice(ticketPriceRange.maxTicketPrice);
+        
+        console.log(`Histogram will show seat price distribution`);
+        console.log(`Min/Max display will show: ${ticketPriceRange.minTicketPrice.toLocaleString('vi-VN')} - ${ticketPriceRange.maxTicketPrice.toLocaleString('vi-VN')} VND`);
+      } else {
+        console.error('No seat prices found for this route');
+        // Reset histogram state if no data
+        setShowPriceHistogram(false);
+      }
+    } catch (error) {
+      console.error('Error loading pricing data:', error);
+      setShowPriceHistogram(false);
+    }
     
     // Chuyển đến trang chọn chỗ ngồi với đầy đủ thông tin
     const params = new URLSearchParams({
@@ -819,11 +930,7 @@ const SearchResults = () => {
       departDate: searchParams.get('departDate') || '',
       returnDate: searchParams.get('returnDate') || '',
       isRoundTrip: searchParams.get('isRoundTrip') || 'false',
-      adult: passenger.adult.toString(),
-      child: passenger.child.toString(),
-      elderly: passenger.elderly.toString(),
-      student: passenger.student.toString(),
-      union: passenger.union.toString()
+      passengers: encodeURIComponent(JSON.stringify(passenger))
     });
     
     const selectSeatUrl = `/select-seat?${params.toString()}`;
@@ -857,10 +964,32 @@ const SearchResults = () => {
     return d * 24 * 60 + h * 60 + m;
   }
 
-  // Hàm xử lý lọc
-  const handleFilter = () => {
+  // Hàm reset bộ lọc
+  const handleResetTimeFilters = () => {
+    setDepartTimeFrom('');
+    setDepartTimeTo('');
+    setArriveTimeFrom('');
+    setArriveTimeTo('');
+    // Reset price range to default values
+    setFilterMinPrice(defaultMinPrice);
+    setFilterMaxPrice(defaultMaxPrice);
+    // Reset record type and priority preference filters
+    setSelectedRecordTypes(['standard', 'medium_priority', 'high_priority']);
+    setPriorityPreference('all');
+    // Reset lại danh sách tàu về trạng thái ban đầu
+    setFilteredTrains(otherTrains);
+  };
+
+  // Auto-filter khi giá trị price range slider thay đổi (với throttling)
+  const applyFilters = useCallback(() => {
     let trains = otherTrains;
-    // Lọc theo giờ đến nơi mong muốn
+    
+    // Lọc theo giá
+    trains = trains.filter(train => {
+      return train.price >= filterMinPrice && train.price <= filterMaxPrice;
+    });
+    
+    // Lọc theo giờ đến nơi mong muốn (nếu có)
     if (arriveTimeFrom && arriveTimeTo) {
       const fromMin = parseTimeToMinutes(arriveTimeFrom);
       const toMin = parseTimeToMinutes(arriveTimeTo);
@@ -869,7 +998,8 @@ const SearchResults = () => {
         return arrMin >= fromMin && arrMin <= toMin;
       });
     }
-    // Lọc theo giờ khởi hành
+    
+    // Lọc theo giờ khởi hành (nếu có)
     if (departTimeFrom && departTimeTo) {
       const fromMin = parseTimeToMinutes(departTimeFrom);
       const toMin = parseTimeToMinutes(departTimeTo);
@@ -878,7 +1008,507 @@ const SearchResults = () => {
         return depMin >= fromMin && depMin <= toMin;
       });
     }
+    
+    // Lọc theo Record Type và Priority Preference (theo Salesforce logic) - áp dụng cho cả chuyến tàu
+    if (selectedRecordTypes.length < 3 || priorityPreference === 'high_only') {
+      // Bước 1: Lọc theo Record Type
+      trains = filterRecordsByType(selectedRecordTypes, trains);
+      
+      // Bước 2: Lọc theo Priority Preference  
+      trains = filterRecordsByPriority(priorityPreference, trains);
+    }
+    
     setFilteredTrains(trains);
+  }, [filterMinPrice, filterMaxPrice, arriveTimeFrom, arriveTimeTo, departTimeFrom, departTimeTo, selectedRecordTypes, priorityPreference, otherTrains]);
+
+  // Throttle việc filter cho price slider để mượt mà hơn
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      applyFilters();
+    }, 100); // Reduce throttle to 100ms for smoother response
+
+    return () => clearTimeout(timeoutId);
+  }, [applyFilters]);
+
+  // Cấu trúc Train Object theo Salesforce logic
+  const trainObjectConfig = {
+    // Train Records (tương đương Salesforce Objects)
+    train: {
+      objectName: 'Train',
+      apiName: 'Train',
+      fields: ['id', 'name', 'price', 'duration', 'route', 'seatType', 'priority', 'carNumber']
+    }
+  };
+
+  // Hàm xử lý cho range slider mới
+  const handleMouseDown = (handle: string) => {
+    setIsDragging(handle);
+  };
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+
+    if (isDragging === 'left') {
+      const newLeft = Math.min(percentage, rightHandle - 1);
+      setLeftHandle(newLeft);
+      // Cập nhật giá trị filter
+      const newPrice = minSeatPrice + (newLeft / 100) * (maxSeatPrice - minSeatPrice);
+      setFilterMinPrice(Math.round(newPrice));
+    } else if (isDragging === 'right') {
+      const newRight = Math.max(percentage, leftHandle + 1);
+      setRightHandle(newRight);
+      // Cập nhật giá trị filter
+      const newPrice = minSeatPrice + (newRight / 100) * (maxSeatPrice - minSeatPrice);
+      setFilterMaxPrice(Math.round(newPrice));
+    }
+  }, [isDragging, leftHandle, rightHandle, minSeatPrice, maxSeatPrice]);
+
+  const handleMouseUp = () => {
+    setIsDragging(null);
+  };
+
+  // Cập nhật leftHandle và rightHandle khi giá trị thay đổi
+  useEffect(() => {
+    if (maxSeatPrice > minSeatPrice) {
+      const leftPercent = ((filterMinPrice - minSeatPrice) / (maxSeatPrice - minSeatPrice)) * 100;
+      const rightPercent = ((filterMaxPrice - minSeatPrice) / (maxSeatPrice - minSeatPrice)) * 100;
+      setLeftHandle(Math.max(0, Math.min(100, leftPercent)));
+      setRightHandle(Math.max(0, Math.min(100, rightPercent)));
+    }
+  }, [filterMinPrice, filterMaxPrice, minSeatPrice, maxSeatPrice]);
+
+  // Record Type Config (tương đương Seat Type theo Salesforce)
+  const recordTypeConfig = {
+    // High Priority Records (tương đương Compartment 4)
+    high_priority: {
+      objects: ['Train'],
+      criteria: {
+        carNumbers: [6, 7, 8, 9, 10],
+        priority: 'High',
+        priceRange: { $gte: 800000 }
+      },
+      description: 'Giường nằm khoang 4 - Records có độ ưu tiên cao'
+    },
+    
+    // Medium Priority Records (tương đương Compartment 6)
+    medium_priority: {
+      objects: ['Train'],
+      criteria: {
+        carNumbers: [3, 4, 5],
+        priority: 'Medium',
+        priceRange: { $gte: 500000, $lt: 800000 }
+      },
+      description: 'Giường nằm khoang 6 - Records có độ ưu tiên trung bình'
+    },
+    
+    // Standard Records (tương đương Seat)
+    standard: {
+      objects: ['Train'],
+      criteria: {
+        carNumbers: [1, 2],
+        priority: 'Standard',
+        priceRange: { $lt: 500000 }
+      },
+      description: 'Ghế ngồi - Records tiêu chuẩn'
+    }
+  };
+
+  // Hàm tính Priority Score theo Salesforce logic
+  const getPriorityScore = (train: Train): number => {
+    const objectType = 'Train'; // Train object type
+    let score = 5; // Default score
+    
+    // Train priority: Duration càng ngắn càng cao điểm (như Stage trong Opportunity)
+    const durationStr = train.duration;
+    const durationMatch = durationStr.match(/(\d+)h/);
+    const hours = durationMatch ? parseInt(durationMatch[1]) : 24;
+    
+    // Duration mapping (ngược với noise - thời gian ngắn = priority cao)
+    if (hours <= 10) score = 10;        // Rất nhanh
+    else if (hours <= 15) score = 8;    // Nhanh  
+    else if (hours <= 20) score = 6;    // Trung bình
+    else if (hours <= 25) score = 4;    // Chậm
+    else if (hours <= 30) score = 2;    // Rất chậm
+    else score = 1;                     // Cực chậm
+    
+    // Điều chỉnh score dựa trên giá (price như Revenue trong Account)
+    const price = train.price;
+    if (price < 300000) score = Math.max(1, score - 2); // Giá thấp = priority thấp
+    else if (price > 1000000) score = Math.min(10, score + 2); // Giá cao = priority cao
+    
+    return score;
+  };
+
+  // Hàm kiểm tra High Priority (tương đương isQuietCar)
+  const isHighPriority = (train: Train): boolean => {
+    const priorityScore = getPriorityScore(train);
+    return priorityScore >= 6; // High priority: score >= 6
+  };
+
+  // Hàm lấy màu theo Priority (tương đương getCarColorByNoise)
+  const getTrainColorByPriority = (train: Train): string => {
+    return isHighPriority(train) ? 'green' : 'red';
+  };
+
+  // Hàm kiểm tra criteria theo Salesforce logic
+  const matchesRecordTypeCriteria = (train: Train, criteria: any): boolean => {
+    return Object.entries(criteria).every(([field, value]) => {
+      if (field === 'carNumbers') {
+        // Giả định train có thể phục vụ các loại toa theo quy luật
+        return true; // Simplified - trong thực tế sẽ check train data
+      }
+      
+      if (field === 'priceRange' && typeof value === 'object' && value !== null) {
+        // Handle range queries cho price
+        const price = train.price;
+        if ((value as any).$gte !== undefined && price < (value as any).$gte) return false;
+        if ((value as any).$lt !== undefined && price >= (value as any).$lt) return false;
+        return true;
+      }
+      
+      if (field === 'priority') {
+        // Tính priority dựa trên score
+        const score = getPriorityScore(train);
+        if (value === 'High') return score >= 8;
+        if (value === 'Medium') return score >= 4 && score < 8;
+        if (value === 'Standard') return score < 4;
+      }
+      
+      return true; // Default pass
+    });
+  };
+
+  // Hàm lọc records theo type (tương đương filterCarsBySeatType)
+  const filterRecordsByType = (selectedTypes: string[], allTrains: Train[]): Train[] => {
+    if (selectedTypes.length === 0) {
+      return allTrains; // Nếu không chọn gì, hiển thị tất cả
+    }
+    
+    const filteredTrains: Train[] = [];
+    
+    selectedTypes.forEach(type => {
+      const config = (recordTypeConfig as any)[type];
+      if (config) {
+        const typeTrains = allTrains.filter(train => 
+          matchesRecordTypeCriteria(train, config.criteria)
+        );
+        filteredTrains.push(...typeTrains);
+      }
+    });
+    
+    // Remove duplicates
+    return Array.from(new Set(filteredTrains));
+  };
+
+  // Hàm lọc theo Priority Preference (tương đương filterRecordsByPriority)
+  const filterRecordsByPriority = (priorityPreference: 'all' | 'high_only', visibleTrains: Train[]): Train[] => {
+    if (priorityPreference === 'high_only') {
+      // Chỉ hiển thị trains ưu tiên cao (priority score >= 6)
+      return visibleTrains.filter(train => isHighPriority(train));
+    } else {
+      // Hiển thị tất cả trains
+      return visibleTrains;
+    }
+  };
+
+  // Hàm tạo histogram cho giá vé (chia thành các bin)
+  const getSeatPriceHistogram = (prices: number[], binCount: number = 18) => {
+    if (prices.length === 0) return new Array(binCount).fill(0);
+    
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const binSize = (max - min) / binCount;
+    const bins = new Array(binCount).fill(0);
+    
+    prices.forEach(price => {
+      const binIndex = Math.min(Math.floor((price - min) / binSize), binCount - 1);
+      bins[binIndex]++;
+    });
+    
+    return bins;
+  };
+
+  // Hàm lấy thông tin records có sẵn cho train (theo Salesforce logic)
+  const getAvailableRecordTypes = async (trainId: string, fromStation: string, toStation: string) => {
+    try {
+      const { ALL_GENERATED_PRICING_DATA } = await import('../mockData/generated');
+      const trainPricing = ALL_GENERATED_PRICING_DATA.find(t => t.trainId === trainId);
+      
+      if (!trainPricing) return [];
+
+      const norm = (s: string) => {
+        let normalized = s
+          .trim()
+          .toUpperCase()
+          .replace(/^GA\s+/, '')
+          .replace(/\s+/g, ' ')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+        
+        if (normalized === 'SAI GON') {
+          normalized = 'HO CHI MINH';
+        }
+        
+        return normalized;
+      };
+
+      const normalizedFrom = norm(fromStation);
+      const normalizedTo = norm(toStation);
+
+      const route = trainPricing.routes.find(r => 
+        norm(r.origin) === normalizedFrom && norm(r.destination) === normalizedTo
+      );
+
+      if (!route) return [];
+
+      const availableTypes: {type: string, cars: number[], minPriority: number, maxPriority: number}[] = [];
+
+      // Kiểm tra Standard Records (ghế ngồi - toa 1,2)
+      if (route.fares.seating && route.fares.seating.length > 0) {
+        const cars = route.fares.seating.map(car => car.car_number);
+        availableTypes.push({
+          type: 'standard',
+          cars,
+          minPriority: 1,
+          maxPriority: 5
+        });
+      }
+
+      // Kiểm tra Medium Priority Records (giường nằm khoang 6 - toa 3,4,5)
+      if (route.fares.sleeper_6_berth && route.fares.sleeper_6_berth.length > 0) {
+        const cars = route.fares.sleeper_6_berth.map(car => car.car_number);
+        availableTypes.push({
+          type: 'medium_priority',
+          cars,
+          minPriority: 4,
+          maxPriority: 8
+        });
+      }
+
+      // Kiểm tra High Priority Records (giường nằm khoang 4 - toa 6,7,8,9,10)
+      if (route.fares.sleeper_4_berth && route.fares.sleeper_4_berth.length > 0) {
+        const cars = route.fares.sleeper_4_berth.map(car => car.car_number);
+        availableTypes.push({
+          type: 'high_priority',
+          cars,
+          minPriority: 6,
+          maxPriority: 10
+        });
+      }
+
+      return availableTypes;
+    } catch (error) {
+      console.error('Error getting available record types:', error);
+      return [];
+    }
+  };
+
+  // Hàm lấy dữ liệu giá ghế cho tàu cụ thể
+  const fetchSeatPriceData = async (trainId: string, fromStation: string, toStation: string) => {
+    try {
+      console.log(`Fetching seat price data for ${trainId}: ${fromStation} → ${toStation}`);
+      
+      // Import generated pricing data
+      const { ALL_GENERATED_PRICING_DATA } = await import('../mockData/generated');
+      console.log(`Found ${ALL_GENERATED_PRICING_DATA.length} trains in generated data`);
+      
+      const trainPricing = ALL_GENERATED_PRICING_DATA.find(t => t.trainId === trainId);
+      
+      if (!trainPricing) {
+        console.error(`No pricing data found for train ${trainId}`);
+        console.log('Available train IDs:', ALL_GENERATED_PRICING_DATA.map(t => t.trainId));
+        return [];
+      }
+
+      console.log(`Found pricing data for ${trainId} with ${trainPricing.routes.length} routes`);
+
+      // Chuẩn hóa tên ga
+      const norm = (s: string) => {
+        let normalized = s
+          .trim()
+          .toUpperCase()
+          .replace(/^GA\s+/, '')
+          .replace(/\s+/g, ' ')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+        
+        if (normalized === 'SAI GON') {
+          normalized = 'HO CHI MINH';
+        }
+        
+        return normalized;
+      };
+
+      const normalizedFrom = norm(fromStation);
+      const normalizedTo = norm(toStation);
+
+      console.log(`Looking for route: "${normalizedFrom}" → "${normalizedTo}"`);
+      console.log('Available routes:', trainPricing.routes.map(r => `"${norm(r.origin)}" → "${norm(r.destination)}"`));
+
+      // Tìm route phù hợp
+      const route = trainPricing.routes.find(r => 
+        norm(r.origin) === normalizedFrom && norm(r.destination) === normalizedTo
+      );
+
+      if (!route) {
+        console.error(`No route found for ${normalizedFrom} → ${normalizedTo}`);
+        return [];
+      }
+
+      console.log(`Found matching route, extracting seat prices...`);
+
+      // Lấy tất cả giá ghế từ route
+      const allSeatPrices: number[] = [];
+
+      // Ghế ngồi mềm
+      if (route.fares.seating) {
+        console.log(`Processing ${route.fares.seating.length} seating cars`);
+        route.fares.seating.forEach(car => {
+          car.rows.forEach(row => {
+            row.row_numbers.forEach(() => {
+              allSeatPrices.push(row.price);
+            });
+          });
+        });
+      }
+
+      // Giường nằm 6
+      if (route.fares.sleeper_6_berth) {
+        console.log(`Processing ${route.fares.sleeper_6_berth.length} 6-berth sleeper cars`);
+        route.fares.sleeper_6_berth.forEach(car => {
+          car.rows.forEach(row => {
+            row.row_numbers.forEach(() => {
+              allSeatPrices.push(row.price);
+            });
+          });
+        });
+      }
+
+      // Giường nằm 4
+      if (route.fares.sleeper_4_berth) {
+        console.log(`Processing ${route.fares.sleeper_4_berth.length} 4-berth sleeper cars`);
+        route.fares.sleeper_4_berth.forEach(car => {
+          car.rows.forEach(row => {
+            row.row_numbers.forEach(() => {
+              allSeatPrices.push(row.price);
+            });
+          });
+        });
+      }
+
+      console.log(`Extracted ${allSeatPrices.length} total seat prices`);
+      if (allSeatPrices.length > 0) {
+        const minPrice = Math.min(...allSeatPrices);
+        const maxPrice = Math.max(...allSeatPrices);
+        console.log(`Price range: ${minPrice.toLocaleString('vi-VN')} - ${maxPrice.toLocaleString('vi-VN')} VND`);
+      }
+      
+      return allSeatPrices;
+      
+    } catch (error) {
+      console.error('Error fetching seat price data:', error);
+      return [];
+    }
+  };
+
+  // Hàm lấy khoảng giá vé cho chuyến đi (rẻ nhất và đắt nhất)
+  const getTicketPriceRange = async (trainId: string, fromStation: string, toStation: string) => {
+    try {
+      console.log(`Getting ticket price range for ${trainId}: ${fromStation} → ${toStation}`);
+      
+      // Import generated pricing data
+      const { ALL_GENERATED_PRICING_DATA } = await import('../mockData/generated');
+      const trainPricing = ALL_GENERATED_PRICING_DATA.find(t => t.trainId === trainId);
+      
+      if (!trainPricing) {
+        console.error(`No pricing data found for train ${trainId}`);
+        return { minTicketPrice: 0, maxTicketPrice: 0 };
+      }
+
+      // Chuẩn hóa tên ga
+      const norm = (s: string) => {
+        let normalized = s
+          .trim()
+          .toUpperCase()
+          .replace(/^GA\s+/, '')
+          .replace(/\s+/g, ' ')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+        
+        if (normalized === 'SAI GON') {
+          normalized = 'HO CHI MINH';
+        }
+        
+        return normalized;
+      };
+
+      const normalizedFrom = norm(fromStation);
+      const normalizedTo = norm(toStation);
+
+      // Tìm route phù hợp
+      const route = trainPricing.routes.find(r => 
+        norm(r.origin) === normalizedFrom && norm(r.destination) === normalizedTo
+      );
+
+      if (!route) {
+        console.error(`No route found for ${normalizedFrom} → ${normalizedTo}`);
+        return { minTicketPrice: 0, maxTicketPrice: 0 };
+      }
+
+      // Lấy giá vé từ các loại ghế/giường khác nhau
+      const ticketPrices: number[] = [];
+
+      // Giá vé ghế ngồi mềm (lấy giá thấp nhất trong loại này)
+      if (route.fares.seating && route.fares.seating.length > 0) {
+        const seatingPrices = route.fares.seating.flatMap(car => 
+          car.rows.map(row => row.price)
+        );
+        if (seatingPrices.length > 0) {
+          ticketPrices.push(Math.min(...seatingPrices));
+        }
+      }
+
+      // Giá vé giường nằm 6 (lấy giá thấp nhất trong loại này)
+      if (route.fares.sleeper_6_berth && route.fares.sleeper_6_berth.length > 0) {
+        const sleeper6Prices = route.fares.sleeper_6_berth.flatMap(car => 
+          car.rows.map(row => row.price)
+        );
+        if (sleeper6Prices.length > 0) {
+          ticketPrices.push(Math.min(...sleeper6Prices));
+        }
+      }
+
+      // Giá vé giường nằm 4 (lấy giá thấp nhất trong loại này)
+      if (route.fares.sleeper_4_berth && route.fares.sleeper_4_berth.length > 0) {
+        const sleeper4Prices = route.fares.sleeper_4_berth.flatMap(car => 
+          car.rows.map(row => row.price)
+        );
+        if (sleeper4Prices.length > 0) {
+          ticketPrices.push(Math.min(...sleeper4Prices));
+        }
+      }
+
+      if (ticketPrices.length === 0) {
+        console.error('No ticket prices found for this route');
+        return { minTicketPrice: 0, maxTicketPrice: 0 };
+      }
+
+      const minTicketPrice = Math.min(...ticketPrices);
+      const maxTicketPrice = Math.max(...ticketPrices);
+
+      console.log(`Ticket price range: ${minTicketPrice.toLocaleString('vi-VN')} - ${maxTicketPrice.toLocaleString('vi-VN')} VND`);
+      console.log(`Available ticket types: ${ticketPrices.length} different price categories`);
+
+      return { minTicketPrice, maxTicketPrice };
+      
+    } catch (error) {
+      console.error('Error getting ticket price range:', error);
+      return { minTicketPrice: 0, maxTicketPrice: 0 };
+    }
   };
 
   // Hàm sinh dữ liệu histogram từ danh sách giá vé
@@ -942,6 +1572,70 @@ const SearchResults = () => {
   return (
     <>
       <style>{`
+        /* CSS cho price range slider - theo thiết kế trong ảnh */
+        .rc-slider {
+          position: relative;
+          touch-action: none;
+          user-select: none;
+        }
+        
+        .rc-slider-handle {
+          cursor: grab !important;
+          border: 3px solid #E91E63 !important;
+          background: #fff !important;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+          outline: none !important;
+          opacity: 1 !important;
+          transition: none !important;
+          z-index: 2 !important;
+          width: 20px !important;
+          height: 20px !important;
+          margin-top: -8px !important;
+        }
+        
+        .rc-slider-handle:hover {
+          transform: scale(1.1) !important;
+          box-shadow: 0 3px 12px rgba(0,0,0,0.2) !important;
+          border-color: #C2185B !important;
+          transition: all 0.2s ease !important;
+        }
+        
+        .rc-slider-handle:active,
+        .rc-slider-handle:focus,
+        .rc-slider-handle-dragging {
+          cursor: grabbing !important;
+          transform: scale(1.15) !important;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.25) !important;
+          border-color: #AD1457 !important;
+          transition: none !important;
+        }
+        
+        .rc-slider-track {
+          background: #E91E63 !important;
+          border-radius: 2px !important;
+          height: 4px !important;
+          transition: none !important;
+        }
+        
+        .rc-slider-rail {
+          background: #e0e0e0 !important;
+          border-radius: 2px !important;
+          height: 4px !important;
+        }
+        
+        .rc-slider:hover .rc-slider-rail {
+          background: #d5d5d5 !important;
+        }
+        
+        /* Đảm bảo cả 2 handle đều tương tác được */
+        .rc-slider-handle:first-child {
+          z-index: 3 !important;
+        }
+        
+        .rc-slider-handle:last-child {
+          z-index: 3 !important;
+        }
+        
         @media (max-width: 600px) {
           body, #root, .search-results-root {
             min-width: 0 !important;
@@ -1028,6 +1722,191 @@ const SearchResults = () => {
         {/* BỘ LỌC */}
         <div className="search-results-filter" style={{ background: '#fff', margin: '16px auto 0 auto', width: '100%', maxWidth: 420, borderRadius: 12, padding: 16, boxShadow: '0 2px 8px #e0e0e0', marginBottom: 18 }}>
           <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 10, color: '#1976d2' }}>Filters</div>
+          
+          {/* Price range widget - hiển thị luôn */}
+          {seatPriceData.length > 0 && (
+            <div style={{ marginBottom: 16, padding: 16, background: '#fff', borderRadius: 12, border: '1px solid #e0e0e0' }}>
+              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4, color: '#333' }}>
+                Price range
+              </div>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 16 }}>
+                Trip price, includes all fees
+              </div>
+              
+              {/* Histogram bars - theo style nâng cao */}
+              <div style={{ position: 'relative', height: 80, marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'space-between', height: '100%' }}>
+                  {getSeatPriceHistogram(seatPriceData, 18).map((count, idx) => {
+                    const maxCount = Math.max(...getSeatPriceHistogram(seatPriceData, 18));
+                    const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                    const position = (idx / (getSeatPriceHistogram(seatPriceData, 18).length - 1)) * 100;
+                    const isInRange = position >= leftHandle && position <= rightHandle;
+                    
+                    return (
+                      <div
+                        key={idx}
+                        style={{ width: `${100 / getSeatPriceHistogram(seatPriceData, 18).length}%` }}
+                      >
+                        <div
+                          style={{
+                            width: '100%',
+                            height: `${Math.max(height, 2)}%`,
+                            background: isInRange 
+                              ? 'linear-gradient(to top, #E91E63, #F06292)' 
+                              : '#e0e0e0',
+                            borderRadius: '3px 3px 0 0',
+                            transition: 'background 200ms ease',
+                            minHeight: '2px'
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Range Slider mới - theo mẫu tham khảo */}
+              <div 
+                style={{ 
+                  position: 'relative', 
+                  height: 24, 
+                  background: '#e0e0e0', 
+                  borderRadius: 12, 
+                  cursor: 'pointer',
+                  marginBottom: 20,
+                  margin: '0 12px 20px 12px'
+                }}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
+                {/* Track between handles */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    height: '100%',
+                    background: 'linear-gradient(to right, #E91E63, #F06292)',
+                    borderRadius: 12,
+                    left: `${leftHandle}%`,
+                    width: `${rightHandle - leftHandle}%`
+                  }}
+                />
+                
+                {/* Left Handle */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    width: 24,
+                    height: 24,
+                    background: '#fff',
+                    border: '4px solid #E91E63',
+                    borderRadius: '50%',
+                    cursor: 'grab',
+                    transform: 'translate(-50%, -50%)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    transition: 'transform 200ms ease',
+                    left: `${leftHandle}%`,
+                    zIndex: 2
+                  }}
+                  onMouseDown={() => handleMouseDown('left')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)';
+                  }}
+                />
+                
+                {/* Right Handle */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    width: 24,
+                    height: 24,
+                    background: '#fff',
+                    border: '4px solid #E91E63',
+                    borderRadius: '50%',
+                    cursor: 'grab',
+                    transform: 'translate(-50%, -50%)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    transition: 'transform 200ms ease',
+                    left: `${rightHandle}%`,
+                    zIndex: 2
+                  }}
+                  onMouseDown={() => handleMouseDown('right')}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translate(-50%, -50%) scale(1)';
+                  }}
+                />
+              </div>
+              
+              {/* Labels dưới slider */}
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                fontSize: 12, 
+                color: '#999', 
+                marginBottom: 8,
+                padding: '0 12px'
+              }}>
+                <span>Minimum</span>
+                <span>Maximum</span>
+              </div>
+              
+              {/* Price values */}
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                fontSize: 16, 
+                fontWeight: 700, 
+                color: '#333',
+                padding: '0 12px',
+                marginBottom: 16
+              }}>
+                <span>đ{filterMinPrice.toLocaleString('vi-VN')}</span>
+                <span>đ{filterMaxPrice.toLocaleString('vi-VN')}</span>
+              </div>
+
+              {/* Statistics */}
+              <div style={{ 
+                padding: 12, 
+                background: '#f8f9fa', 
+                borderRadius: 8,
+                margin: '0 12px'
+              }}>
+                <div style={{ fontWeight: 600, color: '#333', marginBottom: 8, fontSize: 14 }}>
+                  Thống kê vùng được chọn
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 12 }}>
+                  <div>
+                    <span style={{ color: '#666' }}>Phạm vi:</span>
+                    <div style={{ fontWeight: 600, color: '#E91E63' }}>
+                      {Math.round(rightHandle - leftHandle)}%
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: '#666' }}>Khoảng cách:</span>
+                    <div style={{ fontWeight: 600, color: '#E91E63' }}>
+                      đ{(filterMaxPrice - filterMinPrice).toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: '#666' }}>Trung bình:</span>
+                    <div style={{ fontWeight: 600, color: '#E91E63' }}>
+                      đ{Math.round((filterMinPrice + filterMaxPrice) / 2).toLocaleString('vi-VN')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Thời gian khởi hành (Trong khoảng) */}
           <div style={{ marginBottom: 12 }}>
             <label style={{ fontSize: 14, fontWeight: 600 }}>Departure time (range):</label><br />
@@ -1038,14 +1917,118 @@ const SearchResults = () => {
             <label style={{ fontSize: 14, fontWeight: 600 }}>Arrival time (range):</label><br />
             <input type="time" value={arriveTimeFrom} onChange={e => setArriveTimeFrom(e.target.value)} style={{ marginRight: 8, background: '#fff', border: '1px solid #ccc', borderRadius: 6, padding: '4px 8px', color: '#222' }} />–<input type="time" value={arriveTimeTo} onChange={e => setArriveTimeTo(e.target.value)} style={{ background: '#fff', border: '1px solid #ccc', borderRadius: 6, padding: '4px 8px', color: '#222' }} />
           </div>
-          <button onClick={handleFilter} style={{ marginTop: 16, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 32px', fontWeight: 700, fontSize: 15, cursor: 'pointer', width: '100%' }}>Filter</button>
+
+          {/* Bộ lọc Record Type (theo Salesforce logic) - ẨN */}
+          <div style={{ display: 'none', marginBottom: 12 }}>
+            <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>Record Type (Train Categories):</label>
+            {[
+              { value: 'standard', label: 'Standard: Ghế ngồi thường (Toa 1, 2)' },
+              { value: 'medium_priority', label: 'Medium Priority: Giường nằm khoang 6 (Toa 3, 4, 5)' },
+              { value: 'high_priority', label: 'High Priority: Giường nằm khoang 4 (Toa 6, 7, 8, 9, 10)' }
+            ].map((option) => (
+              <div key={option.value} style={{ marginBottom: 4 }}>
+                <label style={{ display: 'flex', alignItems: 'center', fontSize: 13, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedRecordTypes.includes(option.value)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedRecordTypes([...selectedRecordTypes, option.value]);
+                      } else {
+                        setSelectedRecordTypes(selectedRecordTypes.filter((type: string) => type !== option.value));
+                      }
+                    }}
+                    style={{ marginRight: 6 }}
+                  />
+                  {option.label}
+                </label>
+              </div>
+            ))}
+          </div>
+
+          {/* Bộ lọc Priority Preference (theo Salesforce logic) - ẨN */}
+          <div style={{ display: 'none', marginBottom: 12 }}>
+            <label style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, display: 'block' }}>
+              Priority Preference:
+            </label>
+            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+              High Priority Only: Chỉ hiển thị records có priority score ≥ 6
+            </div>
+            {[
+              { value: 'all', label: 'All Priority: Hiển thị tất cả records' },
+              { value: 'high_only', label: 'High Priority Only: Chỉ records ưu tiên cao' }
+            ].map((option) => (
+              <div key={option.value} style={{ marginBottom: 4 }}>
+                <label style={{ display: 'flex', alignItems: 'center', fontSize: 13, cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="priority"
+                    checked={priorityPreference === option.value}
+                    onChange={() => setPriorityPreference(option.value as 'all' | 'high_only')}
+                    style={{ marginRight: 6 }}
+                  />
+                  {option.label}
+                </label>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', marginTop: 16 }}>
+            <button 
+              onClick={() => {
+                // Apply all filters với debounce 300ms như hướng dẫn
+                const timeoutId = setTimeout(() => {
+                  applyFilters();
+                }, 300);
+                return () => clearTimeout(timeoutId);
+              }} 
+              style={{ flex: 1, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}
+            >
+              Apply Filter
+            </button>
+            <button onClick={handleResetTimeFilters} style={{ flex: 1, background: '#f5f5f5', color: '#666', border: '1px solid #ddd', borderRadius: 8, padding: '10px 16px', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>Reset</button>
+          </div>
         </div>
 
         {/* Danh sách tàu khác */}
         <div className="search-results-card" style={{ background: '#fff', margin: '12px auto 0 auto', width: '100%', maxWidth: 900, padding: '16px', borderRadius: '12px 12px 0 0' }}>
+          {/* Hiển thị số kết quả */}
+          <div style={{ marginBottom: 16, padding: '8px 12px', background: '#f7f7fa', borderRadius: 8, fontSize: 14, color: '#666' }}>
+            <strong style={{ color: '#1976d2' }}>{filteredTrains.length}</strong> chuyến tàu phù hợp với bộ lọc của bạn
+            {filteredTrains.length !== otherTrains.length && (
+              <span style={{ marginLeft: 8, fontSize: 12 }}>
+                (Tổng: {otherTrains.length} chuyến)
+              </span>
+            )}
+          </div>
+          {/* Header với số lượng kết quả */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: 16, 
+            paddingBottom: 8, 
+            borderBottom: '1px solid #e0e0e0' 
+          }}>
+            <div style={{ fontWeight: 600, fontSize: 16, color: '#1976d2' }}>
+              Available Trains
+            </div>
+            <div style={{ 
+              fontSize: 14, 
+              color: '#666',
+              background: '#f5f5f5',
+              padding: '4px 8px',
+              borderRadius: 6
+            }}>
+              {filteredTrains.length} train{filteredTrains.length !== 1 ? 's' : ''} found
+            </div>
+          </div>
+          
           {filteredTrains.length === 0 ? (
             <div style={{ textAlign: 'center', color: '#e53935', fontWeight: 600, fontSize: 17, margin: '32px 0' }}>
               No trains found matching the filters.
+              <div style={{ fontSize: 14, color: '#888', fontWeight: 400, marginTop: 8 }}>
+                Try adjusting your filters or resetting them.
+              </div>
             </div>
           ) : (
             filteredTrains.map((train: any) => {
@@ -1130,6 +2113,42 @@ const SearchResults = () => {
                       </button>
                     </div>
                     <div style={{ fontSize: isMobile ? 11 : 13, color: '#888', marginBottom: 2 }}>Duration: {durationDisplay}</div>
+                    {/* Hiển thị thông tin Record Type và Priority Score - ẨN */}
+                    <div style={{ display: 'none', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                      {[
+                        { type: 'standard', label: 'Standard', cars: '1-2', priorityRange: '1-5' },
+                        { type: 'medium_priority', label: 'Medium', cars: '3-5', priorityRange: '4-8' },
+                        { type: 'high_priority', label: 'High', cars: '6-10', priorityRange: '6-10' }
+                      ].map((info) => {
+                        const isSelected = selectedRecordTypes.includes(info.type);
+                        const trainScore = getPriorityScore(train);
+                        const isHighPriorityOnly = priorityPreference === 'high_only';
+                        const trainColor = getTrainColorByPriority(train);
+                        return (
+                          <div
+                            key={info.type}
+                            style={{
+                              fontSize: isMobile ? 9 : 10,
+                              background: isSelected ? '#e3f2fd' : '#f5f5f5',
+                              color: isSelected ? '#1976d2' : '#666',
+                              padding: '2px 6px',
+                              borderRadius: 4,
+                              border: isSelected ? '1px solid #1976d2' : '1px solid #ddd'
+                            }}
+                          >
+                            {info.label} (T{info.cars})
+                            <span style={{ fontSize: '0.8em', marginLeft: 2, color: trainColor === 'green' ? '#4caf50' : '#f44336' }}>
+                              ⭐{trainScore}
+                            </span>
+                            {isHighPriorityOnly && trainScore >= 6 && (
+                              <span style={{ fontSize: '0.8em', marginLeft: 2 }}>
+                                🎯High
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                     {/* <div style={{ fontWeight: 700, fontSize: isMobile ? 16 : 18, color: '#e53935', marginBottom: 2 }}>{train.price.toLocaleString('vi-VN')} đ</div> */}
                     <button
                       onClick={() => handleSelectTrain(train)}

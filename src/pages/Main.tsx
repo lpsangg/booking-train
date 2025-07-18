@@ -7,12 +7,21 @@ import elderlyIcon from '../assets/elderly.png';
 import studentIcon from '../assets/student.png';
 import unionIcon from '../assets/union member.png';
 import logoRailway from '../assets/logo-railway.png';
+import { STATIONS, searchStations } from '../mockData';
 
 interface Station {
+  id: string;
   name: string;
   fullName: string;
   station: string;
   display: string;
+  code: string;
+  province: string;
+  region: 'North' | 'Central' | 'South';
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 }
 
 type PassengerType = 'adult' | 'child' | 'elderly' | 'student' | 'union';
@@ -61,53 +70,32 @@ const Main = () => {
   const [reportActive, setReportActive] = useState(true);
   const [reportTimer, setReportTimer] = useState(60); // 1 phút đầu sáng
 
-  // Dữ liệu gợi ý địa điểm với AI mapping
-  const stationData: Station[] = [
-    { name: 'Hanoi', fullName: 'Hà Nội', station: 'Ga Hà Nội', display: 'Hà Nội' },
-    { name: 'Vinh', fullName: 'Vinh', station: 'Ga Vinh', display: 'Vinh' },
-    { name: 'Danang', fullName: 'Đà Nẵng', station: 'Ga Đà Nẵng', display: 'Đà Nẵng' },
-    { name: 'Nhatrang', fullName: 'Nha Trang', station: 'Ga Nha Trang', display: 'Nha Trang' },
-    { name: 'Saigon', fullName: 'Sài Gòn', station: 'Ga Sài Gòn', display: 'Sài Gòn' },
-  ];
-
   // Hàm tìm kiếm thông minh cho nơi xuất phát (loại trừ nơi đến đã chọn)
   const searchStationsFrom = (query: string): Station[] => {
-    let filteredStations = stationData;
+    let filteredStations = STATIONS;
     
     // Loại trừ nơi đến đã chọn
     if (selectedTo) {
       filteredStations = filteredStations.filter(station => station.station !== selectedTo);
     }
     
-    if (!query) return filteredStations;
+    if (!query) return filteredStations.slice(0, 10); // Giới hạn kết quả hiển thị
     
-    const lowerQuery = query.toLowerCase();
-    return filteredStations.filter(station => 
-      station.name.toLowerCase().includes(lowerQuery) ||
-      station.fullName.toLowerCase().includes(lowerQuery) ||
-      station.station.toLowerCase().includes(lowerQuery) ||
-      station.display.toLowerCase().includes(lowerQuery)
-    );
+    return searchStations(query, selectedTo ? undefined : undefined).slice(0, 10);
   };
 
   // Hàm tìm kiếm thông minh cho nơi đến (loại trừ nơi xuất phát đã chọn)
   const searchStationsTo = (query: string): Station[] => {
-    let filteredStations = stationData;
+    let filteredStations = STATIONS;
     
     // Loại trừ nơi xuất phát đã chọn
     if (selectedFrom) {
       filteredStations = filteredStations.filter(station => station.station !== selectedFrom);
     }
     
-    if (!query) return filteredStations;
+    if (!query) return filteredStations.slice(0, 10); // Giới hạn kết quả hiển thị
     
-    const lowerQuery = query.toLowerCase();
-    return filteredStations.filter(station => 
-      station.name.toLowerCase().includes(lowerQuery) ||
-      station.fullName.toLowerCase().includes(lowerQuery) ||
-      station.station.toLowerCase().includes(lowerQuery) ||
-      station.display.toLowerCase().includes(lowerQuery)
-    );
+    return searchStations(query, selectedFrom ? undefined : undefined).slice(0, 10);
   };
 
   // Hàm xử lý chọn địa điểm
@@ -357,7 +345,7 @@ const Main = () => {
       departDate: departDate ? formatDate(departDate) : '',
       returnDate: returnDate ? formatDate(returnDate) : '',
       isRoundTrip: isRoundTrip.toString(),
-      passenger: JSON.stringify(passenger)
+      passengers: encodeURIComponent(JSON.stringify(passenger))
     });
     // Chuyển hướng sang trang SearchResults
     navigate(`/search-results?${params.toString()}`);
@@ -552,7 +540,7 @@ const Main = () => {
                   outline: 'none',
                   fontWeight: 700,
                   fontSize: 17,
-                  color: '#e53935',
+                  color: '#222',
                   background: 'transparent',
                   padding: '4px 0'
                 }}
