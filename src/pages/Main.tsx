@@ -389,7 +389,7 @@ const Main = () => {
 
   return (
     <>
-      <div style={{ background: '#f7f7fa', minHeight: '100vh', width: '100vw', fontFamily: 'Montserrat, Arial, sans-serif' }}>
+      <div style={{ background: '#f7f7fa', minHeight: '100vh', width: '100vw', fontFamily: 'Montserrat, Arial, sans-serif', paddingBottom: 80 }}>
         {/* Header */}
       <div style={{ width: '100vw', background: '#1976d2', color: '#fff', padding: '14px 0 8px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', marginLeft: 18 }}>

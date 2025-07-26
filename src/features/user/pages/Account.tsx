@@ -60,62 +60,9 @@ const menu2 = [
 
 const Account = () => {
   const navigate = useNavigate();
-  const isLoggedIn = typeof window !== 'undefined' && localStorage.getItem('isLoggedIn') === 'true';
   const username = typeof window !== 'undefined' ? localStorage.getItem('username') || 'admin' : 'admin';
 
-  // Nếu chưa đăng nhập, giữ giao diện cũ
-  if (!isLoggedIn) {
-    return (
-      <div style={{ background: '#f7f7fa', minHeight: '100vh', width: '100vw', fontFamily: 'Montserrat, Arial, sans-serif' }}>
-        <div style={{ background: '#1976d2', color: '#fff', padding: '24px 0 16px 0', textAlign: 'center', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 18px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 24, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1976d2', fontWeight: 700, fontSize: 24 }}> <FaUserFriends size={28} color="#1976d2" /> </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontWeight: 700, fontSize: 18 }}>Become a member</div>
-                <div style={{ fontSize: 13, opacity: 0.9 }}>To enjoy more benefits</div>
-              </div>
-            </div>
-            <button style={{ color: '#fff', fontWeight: 700, fontSize: 16, background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer' }} onClick={() => navigate('/login')}>Log in</button>
-          </div>
-        </div>
-        <div style={{ background: '#fff', borderRadius: 16, margin: '16px 12px 0 12px', boxShadow: '0 2px 8px #0001', overflow: 'hidden' }}>
-          {menu.map((item, idx) => (
-            <div key={item.title} style={{ display: 'flex', alignItems: 'center', padding: '14px 0 14px 18px', borderBottom: idx === menu.length - 1 ? 'none' : '1px solid #f0f0f0', position: 'relative' }}>
-              {item.icon}
-              <div style={{ flex: 1, marginLeft: 14 }}>
-                <div style={{ fontWeight: 600, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {item.title}
-                  {item.badge && <span style={{ background: '#e53935', color: '#fff', fontSize: 11, fontWeight: 700, borderRadius: 8, padding: '2px 7px', marginLeft: 4 }}>{item.badge}</span>}
-                </div>
-                {item.desc && <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{item.desc}</div>}
-              </div>
-              {item.lock && <div style={{ marginRight: 18, opacity: 0.7 }}><FaLock size={18} color="#222" /></div>}
-            </div>
-          ))}
-        </div>
-        <div style={{ background: '#fff', borderRadius: 16, margin: '16px 12px 0 12px', boxShadow: '0 2px 8px #0001', overflow: 'hidden' }}>
-          {menu2.map((item, idx) => (
-            <div key={item.title} style={{ display: 'flex', alignItems: 'center', padding: '14px 0 14px 18px', borderBottom: idx === menu2.length - 1 ? 'none' : '1px solid #f0f0f0', position: 'relative' }}>
-              {item.icon}
-              <div style={{ flex: 1, marginLeft: 14, fontWeight: 600, fontSize: 15 }}>{item.title}</div>
-              {item.desc && <div style={{ color: '#888', fontSize: 12, marginRight: 8 }}>{item.desc}</div>}
-              <span style={{ color: '#bbb', fontSize: 18, marginRight: 18 }}>{'>'}</span>
-            </div>
-          ))}
-        </div>
-        {/* Bottom bar */}
-        <div style={{ position: 'fixed', left: 0, bottom: 0, width: '100%', background: '#fff', borderTop: '1.5px solid #e0e0e0', display: 'flex', justifyContent: 'space-around', alignItems: 'center', height: 62, zIndex: 10 }}>
-          <div style={{ flex: 1, textAlign: 'center', color: '#888', cursor: 'pointer' }} onClick={() => navigate('/main')}><div style={{ fontSize: 22 }}>🔍</div><div style={{ fontSize: 13 }}>Search</div></div>
-          <div style={{ flex: 1, textAlign: 'center', color: '#888', cursor: 'pointer' }} onClick={() => navigate('/tickets')}><div style={{ fontSize: 22 }}>📅</div><div style={{ fontSize: 13 }}>My Tickets</div></div>
-          <div style={{ flex: 1, textAlign: 'center', color: '#888', cursor: 'pointer' }} onClick={() => navigate('/notifications')}><div style={{ fontSize: 22 }}>🔔</div><div style={{ fontSize: 13 }}>Notifications</div></div>
-          <div style={{ flex: 1, textAlign: 'center', color: '#1976d2', fontWeight: 700 }}><div style={{ fontSize: 22 }}>👤</div><div style={{ fontSize: 13 }}>Account</div></div>
-        </div>
-      </div>
-    );
-  }
-
-  // Đã đăng nhập: mở khóa toàn bộ chức năng, hiện avatar và tên user
+  // Luôn render giao diện chính bên dưới (không cần kiểm tra isLoggedIn)
   return (
     <div style={{ background: '#f7f7fa', minHeight: '100vh', width: '100vw', fontFamily: 'Montserrat, Arial, sans-serif' }}>
       <div style={{ background: '#1976d2', color: '#fff', padding: '24px 0 16px 0', textAlign: 'center', position: 'relative' }}>
