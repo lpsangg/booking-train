@@ -1,33 +1,21 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Forget from './pages/Forget';
-import SelectTrain from './pages/SelectTrain';
-import Payment from './pages/Payment';
+import { Login, Register, Forget } from './features/auth';
+import { SelectTrain, SelectSeat, SearchResults, PassengerInfo } from './features/booking';
+import { Payment, Cards, AddInternationalCard, AddDomesticCard, AtmDomesticConfirm } from './features/payment';
+import { Account, Tickets, Notifications, Settings } from './features/user';
 import ETicket from './pages/ETicket';
 import TripDetails from './pages/TripDetails';
 import Promotions from './pages/Promotions';
-import Account from './pages/Account';
-import Notifications from './pages/Notifications';
-import Tickets from './pages/Tickets';
 import Reward from './pages/Reward';
 import PromotionsList from './pages/PromotionsList';
 import Referral from './pages/Referral';
-import Cards from './pages/Cards';
 import Review from './pages/Review';
-import AddInternationalCard from './pages/AddInternationalCard';
-import AddDomesticCard from './pages/AddDomesticCard';
-import AtmDomesticConfirm from './pages/AtmDomesticConfirm';
-import Settings from './pages/Settings';
 import SupportCenter from './pages/SupportCenter';
 import Feedback from './pages/Feedback';
 import Main from './pages/Main';
-import SearchResults from './pages/SearchResults';
-import SelectSeat from './pages/SelectSeat';
 import FAQCategory from './pages/FAQCategory';
-import PassengerInfo from './pages/PassengerInfo';
 
 function App() {
   return (

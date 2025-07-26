@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import logoRailway from '../assets/logo-railway.png';
+import logoRailway from '../../../assets/logo-railway.png';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import dataTau from '../../data/data_tau.json';
-import trainDataRaw from '../../data/data_tau.json';
+import dataTau from '../../../../data/data_tau.json';
+import trainDataRaw from '../../../../data/data_tau.json';
+import type { RoutePrice, CarPricing, RowPricing } from '../../../shared/types';
 
 interface Train {
   id: string;
@@ -1235,7 +1236,7 @@ const SearchResults = () => {
   // Hàm lấy thông tin records có sẵn cho train (theo Salesforce logic)
   const getAvailableRecordTypes = async (trainId: string, fromStation: string, toStation: string) => {
     try {
-      const { ALL_GENERATED_PRICING_DATA } = await import('../mockData/generated');
+      const { ALL_GENERATED_PRICING_DATA } = await import('../../../shared/data/mockData/generated');
       const trainPricing = ALL_GENERATED_PRICING_DATA.find(t => t.trainId === trainId);
       
       if (!trainPricing) return [];
@@ -1313,7 +1314,7 @@ const SearchResults = () => {
       console.log(`Fetching seat price data for ${trainId}: ${fromStation} → ${toStation}`);
       
       // Import generated pricing data
-      const { ALL_GENERATED_PRICING_DATA } = await import('../mockData/generated');
+      const { ALL_GENERATED_PRICING_DATA } = await import('../../../shared/data/mockData/generated');
       console.log(`Found ${ALL_GENERATED_PRICING_DATA.length} trains in generated data`);
       
       const trainPricing = ALL_GENERATED_PRICING_DATA.find(t => t.trainId === trainId);
@@ -1421,7 +1422,7 @@ const SearchResults = () => {
       console.log(`Getting ticket price range for ${trainId}: ${fromStation} → ${toStation}`);
       
       // Import generated pricing data
-      const { ALL_GENERATED_PRICING_DATA } = await import('../mockData/generated');
+      const { ALL_GENERATED_PRICING_DATA } = await import('../../../shared/data/mockData/generated');
       const trainPricing = ALL_GENERATED_PRICING_DATA.find(t => t.trainId === trainId);
       
       if (!trainPricing) {

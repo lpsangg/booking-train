@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Button from '../components/Button';
-import Card from '../components/Card';
-import { TRAINS, searchTrains, getTrainById, type Train } from '../mockData';
+import Button from '../../../components/Button';
+import Card from '../../../components/Card';
+import { TRAINS, searchTrains, getTrainById, type Train } from '../../../shared/data';
 import styles from './SelectTrain.module.css';
 
 const SelectTrain = () => {

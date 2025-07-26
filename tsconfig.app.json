@@ -17,6 +17,7 @@
 
     /* Linting */
     "strict": true,
+    "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "erasableSyntaxOnly": true,
@@ -25,7 +26,11 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@/features/*": ["src/features/*"],
+      "@/shared/*": ["src/shared/*"],
+      "@/components/*": ["src/components/*"],
+      "@/pages/*": ["src/pages/*"]
     }
   },
   "include": ["src"]

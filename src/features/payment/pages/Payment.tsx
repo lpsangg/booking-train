@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import Button from '../components/Button';
-import Card from '../components/Card';
-import Input from '../components/Input';
+import Button from '../../../components/Button';
+import Card from '../../../components/Card';
+import Input from '../../../components/Input';
 import styles from './Payment.module.css';
 
 const Payment = () => {

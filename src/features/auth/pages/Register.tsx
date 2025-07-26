@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Register.module.css';
-import logoRailway from '../assets/logo-railway.png';
-import userIcon from '../assets/user.svg';
-import phoneIcon from '../assets/phone.png';
-import passIcon from '../assets/lock.svg';
-import eyeIcon from '../assets/eye.svg';
-import facebookIcon from '../assets/facebook.png';
-import appleIcon from '../assets/apple.png';
-import googleIcon from '../assets/google.png';
-import twitterIcon from '../assets/twitter.png';
+import logoRailway from '../../../assets/logo-railway.png';
+import userIcon from '../../../assets/user.svg';
+import phoneIcon from '../../../assets/phone.png';
+import passIcon from '../../../assets/lock.svg';
+import eyeIcon from '../../../assets/eye.svg';
+import facebookIcon from '../../../assets/facebook.png';
+import appleIcon from '../../../assets/apple.png';
+import googleIcon from '../../../assets/google.png';
+import twitterIcon from '../../../assets/twitter.png';
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);

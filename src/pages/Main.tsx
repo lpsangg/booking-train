@@ -6,8 +6,10 @@ import childIcon from '../assets/child.png';
 import elderlyIcon from '../assets/elderly.png';
 import studentIcon from '../assets/student.png';
 import unionIcon from '../assets/union member.png';
+import expectantMotherIcon from '../assets/expectant-mother.png';
+import nursingMotherIcon from '../assets/Nursing mother.png';
 import logoRailway from '../assets/logo-railway.png';
-import { STATIONS, searchStations } from '../mockData';
+import { STATIONS, searchStations } from '../shared/data';
 
 interface Station {
   id: string;
@@ -24,7 +26,7 @@ interface Station {
   };
 }
 
-type PassengerType = 'adult' | 'child' | 'elderly' | 'student' | 'union';
+type PassengerType = 'adult' | 'child' | 'elderly' | 'student' | 'union' | 'expectant_nursing_mother';
 
 const Main = () => {
   // Lấy thông tin người dùng từ localStorage
@@ -61,7 +63,8 @@ const Main = () => {
     child: 0,
     elderly: 0,
     student: 0,
-    union: 0
+    union: 0,
+    expectant_nursing_mother: 0
   });
 
   // State cho thông báo Report
@@ -153,14 +156,14 @@ const Main = () => {
   };
 
   // Hàm tạo calendar
-  const generateCalendar = () => {
+  const generateCalendar = (): Date[] => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
     const firstDay = new Date(year, month, 1);
     const startDate = new Date(firstDay);
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 
-    const calendar = [];
+    const calendar: Date[] = [];
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
@@ -223,12 +226,12 @@ const Main = () => {
   // Cảnh báo trẻ em
   const showChildWarning = passenger.adult === 1 && passenger.child > 3;
   // Gợi ý khoang nhóm
-  const totalPeople = passenger.adult + passenger.child + passenger.elderly + passenger.student + passenger.union;
+  const totalPeople = passenger.adult + passenger.child + passenger.elderly + passenger.student + passenger.union + passenger.expectant_nursing_mother;
   const showGroupSuggest = totalPeople === 4;
   const showGroupWarning = totalPeople > 4 && totalPeople % 4 !== 0;
 
-  // Tổng số người lớn (bao gồm: adult, elderly, student, union)
-  const totalAdult = passenger.adult + passenger.elderly + passenger.student + passenger.union;
+  // Tổng số người lớn (bao gồm: adult, elderly, student, union, expectant_nursing_mother)
+  const totalAdult = passenger.adult + passenger.elderly + passenger.student + passenger.union + passenger.expectant_nursing_mother;
 
   const navigate = useNavigate();
   // Kiểm tra đã có e-ticket chưa
@@ -802,6 +805,12 @@ const Main = () => {
               <img src={unionIcon} alt="union" style={{ width: 28, height: 28 }} />
               <span style={{ fontWeight: 700, fontSize: 17, color: '#222' }}>{passenger.union}</span>
             </div>
+            {/* Expectant/Nursing Mother */}
+            <div style={{ background: '#fff', borderRadius: 8, padding: '4px 8px', minWidth: 44, display: 'flex', alignItems: 'center', gap: 6, position: 'relative' }}>
+              <span style={{ position: 'absolute', top: -12, left: 28, background: '#e91e63', color: '#fff', fontWeight: 700, fontSize: 12, borderRadius: 6, padding: '0 6px', lineHeight: '18px', zIndex: 2 }}>CARE</span>
+              <img src={nursingMotherIcon} alt="nursing mother" style={{ width: 28, height: 28 }} />
+              <span style={{ fontWeight: 700, fontSize: 17, color: '#222' }}>{passenger.expectant_nursing_mother}</span>
+            </div>
           </div>
         </div>
 
@@ -1056,14 +1065,45 @@ const Main = () => {
               { key: 'elderly', label: 'Elderly', desc: 'Traveling from departure date, aged 60 and above, applies to Vietnamese citizens', color: '#1976d2', badge: 'DISCOUNT 15%', icon: elderlyIcon },
               { key: 'student', label: 'Student', desc: 'Applies to Vietnamese citizens with a Student ID when traveling by train', color: '#0288d1', badge: 'DISCOUNT 10%', icon: studentIcon },
               { key: 'union', label: 'Union Member', desc: 'Applies to Vietnamese citizens with a valid Union ID when traveling by train', color: '#fbc02d', badge: 'DISCOUNT 5%', icon: unionIcon },
+              { key: 'expectant_nursing_mother', label: 'Expectant / Nursing Mother', desc: 'Nursing Mother: women breastfeeding or caring for infants under 1 year old. Infants share bed and do not need tickets. Expectant: pregnant women. For privacy or additional companion, book another ticket.', color: '#e91e63', badge: 'SPECIAL CARE', icon: nursingMotherIcon },
             ].map((item) => (
               <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 8, padding: '10px 0 10px 0', marginBottom: 8, boxShadow: '0 1px 4px #0001' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <img src={item.icon} alt={item.label} style={{ width: 32, height: 32 }} />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: item.color, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: item.color, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
                       {item.label}
-                      {item.badge && <span style={{ background: '#e3f2fd', color: '#388e3c', fontWeight: 700, fontSize: 12, borderRadius: 6, padding: '2px 8px', marginLeft: 4 }}>{item.badge}</span>}
+                      {item.badge && (
+                        <span
+                          style={
+                            item.badge === 'SPECIAL CARE'
+                              ? {
+                                  background: '#fce4ec',
+                                  color: '#d81b60',
+                                  fontWeight: 700,
+                                  fontSize: 12,
+                                  borderRadius: 6,
+                                  padding: '2px 8px',
+                                  marginLeft: 4,
+                                  whiteSpace: 'nowrap',
+                                  display: 'inline-block',
+                                }
+                              : {
+                                  background: '#e3f2fd',
+                                  color: '#388e3c',
+                                  fontWeight: 700,
+                                  fontSize: 12,
+                                  borderRadius: 6,
+                                  padding: '2px 8px',
+                                  marginLeft: 4,
+                                  whiteSpace: 'nowrap',
+                                  display: 'inline-block',
+                                }
+                          }
+                        >
+                          {item.badge}
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{item.desc}</div>
                   </div>
