@@ -210,7 +210,7 @@ import {
   SE10_GENERATED_PRICING,
   SE22_GENERATED_PRICING,
   ALL_GENERATED_PRICING_DATA
-} from './mockData/generated';
+} from './generated';
 
 export const SEAT_PRICING_DATA: SeatPricing[] = [
   SE1_GENERATED_PRICING,

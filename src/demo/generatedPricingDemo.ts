@@ -1,5 +1,5 @@
 // Demo test file để kiểm tra generated pricing data
-import { getGeneratedSeatPrice, validateGeneratedPricing } from '../mockData';
+import { getGeneratedSeatPrice, validateGeneratedPricing } from '../shared/data/mockData';
 
 /**
  * Test generated pricing data với routes cụ thể
@@ -86,7 +86,7 @@ export function compareWithOldPricing() {
   console.group('⚖️ COMPARISON: Generated vs Old Pricing');
   
   // Import old pricing functions for comparison
-  import('../mockData').then(({ getAccurateSeatPrice }) => {
+  import('../shared/data/mockData').then(({ getAccurateSeatPrice }) => {
     const comparisons = [
       { trainId: 'SE1', origin: 'Hà Nội', destination: 'Sài Gòn', coachType: 'seating', carNumber: 1, seatRow: 1 },
       { trainId: 'SE5', origin: 'Hà Nội', destination: 'Đà Nẵng', coachType: 'seating', carNumber: 1, seatRow: 1 },

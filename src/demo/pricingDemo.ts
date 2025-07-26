@@ -1,6 +1,6 @@
 // Demo script để test pricing system
-import { runComprehensivePricingTests, getAccurateSeatPrice } from '../mockData';
-import { getGeneratedSeatPrice, validateGeneratedPricing } from '../mockData/generatedPricingIntegration';
+import { runComprehensivePricingTests, getAccurateSeatPrice } from '../shared/data/mockData';
+import { getGeneratedSeatPrice, validateGeneratedPricing } from '../shared/data/mockData/generatedPricingIntegration';
 
 /**
  * Demo function để test một ghế cụ thể với generated data
