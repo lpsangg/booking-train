@@ -1,142 +1,142 @@
 export const FAQ_CATEGORIES = [
   {
     id: 'luggage',
-    name: 'Hành lí',
+    name: 'Luggage',
     icon: '🧳',
     faqs: [
       {
-        q: 'Hành lí xách tay được quy định như thế nào?',
-        a: 'Mỗi hành khách được mang 1 kiện hành lý xách tay miễn cước, tối đa 20 kg, kích thước không vượt quá 0,8 m × 0,5 m × 0,4 m (thể tích ≤ 0,16 m³). Nếu vượt quá giới hạn này, hành khách cần ký gửi và có thể phải trả phí.\nVới hành lý ký gửi:\n – Tối thiểu tính 5 kg/kiện\n – Phần lẻ từ 0,5 kg trở lên được làm tròn thành 1 kg\n – Hàng cồng kềnh tính 1 m³ = 300 kg\n – Xe đạp và xe máy được áp dụng bảng phí riêng'
+        q: 'What are the regulations for carry-on luggage?',
+        a: 'Each passenger is allowed 1 piece of carry-on luggage free of charge, maximum 20 kg, dimensions not exceeding 0.8 m × 0.5 m × 0.4 m (volume ≤ 0.16 m³). If exceeding this limit, passengers need to check in and may be charged fees.\nFor checked luggage:\n – Minimum 5 kg per piece\n – Fractions from 0.5 kg and above are rounded up to 1 kg\n – Bulky items calculated as 1 m³ = 300 kg\n – Bicycles and motorcycles are subject to separate fee schedules'
       },
       {
-        q: 'Tôi có thể để hành lý xách tay ở đâu trong toa tàu?',
-        a: 'Khoang giường nằm:\n – Kệ trên giường tầng 3: để được vali 20–24″\n – Gầm giường tầng 1 (cao khoảng 28 cm): vừa vali 24–26″\nKhoang ghế ngồi:\n – Có kệ ngang kéo dài giống như trên máy bay\n – Không giới hạn chiều dài, nhưng giới hạn chiều cao khoảng 35 cm\n – Phù hợp với vali cabin, ba lô\n – Không để hành lý lớn dưới chân hoặc trong hành lang\nNếu hệ thống phát hiện hành lý quá cỡ so với khoang bạn chọn, sẽ hiện cảnh báo yêu cầu đổi khoang hoặc ký gửi.'
+        q: 'Where can I store carry-on luggage in the train car?',
+        a: 'Sleeping compartments:\n – Shelf above 3rd tier bed: fits 20–24″ suitcases\n – Under 1st tier bed (height about 28 cm): fits 24–26″ suitcases\nSeating compartments:\n – Has horizontal racks extending like on airplanes\n – No length limit, but height limit about 35 cm\n – Suitable for cabin suitcases, backpacks\n – Do not place large luggage under feet or in aisles\nIf the system detects oversized luggage compared to your chosen compartment, it will show a warning requiring compartment change or check-in.'
       },
       {
-        q: 'Nếu tôi mang 3 vali 28″ nhưng lại đặt ghế ngồi thì sao?',
-        a: 'Ghế ngồi không có đủ chỗ chứa cho nhiều vali cỡ lớn. Trong quá trình đặt vé, hệ thống sẽ hiện cảnh báo. Bạn nên chuyển sang khoang giường nằm hoặc đăng ký ký gửi hành lý trước chuyến đi.'
+        q: 'What if I bring 3 28″ suitcases but book seating?',
+        a: 'Seating does not have enough storage space for multiple large suitcases. During booking, the system will show a warning. You should switch to sleeping compartments or register for luggage check-in before the trip.'
       },
       {
-        q: 'Những vật phẩm nào bị cấm mang lên tàu?',
-        a: '– Vũ khí, chất nổ hoặc các chất dễ cháy\n – Động vật sống (trừ thú cưng đã đăng ký theo quy định)\n – Hàng hóa có mùi khó chịu hoặc dễ bị rò rỉ'
+        q: 'What items are prohibited on trains?',
+        a: '– Weapons, explosives or flammable substances\n – Live animals (except registered pets according to regulations)\n – Items with unpleasant odors or prone to leakage'
       },
       {
-        q: 'Kích thước hành lí như thế nào sẽ bị tính là hàng cồng kềnh?',
-        a: 'Bất cứ hành lí nào có kích thước vượt mức giới hạn của hành lí xách tay hoặc nằm ngoài thể loại được quy định của hành lí xách tay đều được xem là hàng cồng kềnh. Hàng cồng kềnh cần phải được khai báo kí gửi có phí tại trang https://duongsatthongnhat.com/bao-gia-van-dich-vu-chuyen-hang-hoa-bang-duong-sat/'
+        q: 'What luggage size is considered bulky?',
+        a: 'Any luggage exceeding the carry-on luggage size limits or outside the specified carry-on luggage categories is considered bulky. Bulky items must be declared for paid check-in at https://duongsatthongnhat.com/bao-gia-van-dich-vu-chuyen-hang-hoa-bang-duong-sat/'
       }
     ]
   },
   {
     id: 'pets',
-    name: 'Thú cưng và vật nuôi',
+    name: 'Pets and Animals',
     icon: '🐶',
     faqs: [
       {
-        q: 'Tôi có được mang thú cưng lên tàu không?',
-        a: 'Chỉ được mang thú cưng nhỏ (mèo, chó dưới 10 kg) nếu đã đặt trước và tuân thủ quy định.'
+        q: 'Can I bring pets on the train?',
+        a: 'Only small pets (cats, dogs under 10 kg) are allowed if booked in advance and regulations are followed.'
       },
       {
-        q: 'Thú cưng cần đi trong điều kiện gì?',
-        a: 'Phải được nhốt trong lồng kín, sạch sẽ, không gây mùi hoặc tiếng ồn.'
+        q: 'What conditions do pets need to travel in?',
+        a: 'Must be kept in clean, enclosed cages that do not cause odors or noise.'
       },
       {
-        q: 'Tôi có cần trả thêm phí cho thú cưng không?',
-        a: 'Không. Thú cưng nhỏ (mèo/chó dưới 10 kg) nếu đã đăng ký trước sẽ không phải trả thêm phí nhưng phải đảm bảo điều kiện về lồng và giấy tờ.'
+        q: 'Do I need to pay extra fees for pets?',
+        a: 'No. Small pets (cats/dogs under 10 kg) if registered in advance will not incur additional fees but must ensure cage conditions and documentation.'
       }
     ]
   },
   {
     id: 'time',
-    name: 'Thời gian & thủ tục trước giờ tàu chạy',
+    name: 'Time & Procedures Before Departure',
     icon: '⏰',
     faqs: [
       {
-        q: 'Tôi nên có mặt ở ga trước bao lâu?',
-        a: 'Nên đến trước ít nhất 30 phút để kiểm tra vé và tìm toa.'
+        q: 'How early should I arrive at the station?',
+        a: 'Should arrive at least 30 minutes early to check tickets and find your car.'
       },
       {
-        q: 'Tôi có cần in vé giấy không?',
-        a: 'Không cần. Mã QR hoặc mã đặt vé trên điện thoại là đủ để lên tàu.'
+        q: 'Do I need to print paper tickets?',
+        a: 'No need. QR code or booking code on your phone is sufficient to board the train.'
       },
       {
-        q: 'Tôi có thể đổi hoặc huỷ vé không?',
-        a: 'Được, nếu còn thời gian quy định. Phí đổi/hủy tùy thuộc vào loại vé và thời điểm yêu cầu.'
+        q: 'Can I change or cancel tickets?',
+        a: 'Yes, if within the specified time limit. Change/cancellation fees depend on ticket type and request timing.'
       }
     ]
   },
   {
     id: 'seat',
-    name: 'Ghế ngồi và khoang giường nằm',
+    name: 'Seating and Sleeping Compartments',
     icon: '🛏️',
     faqs: [
       {
-        q: 'Tôi có được chọn tầng giường khi đặt vé không?',
-        a: 'Có. Hệ thống cho phép chọn tầng giường nếu khoang còn trống.'
+        q: 'Can I choose bed tiers when booking tickets?',
+        a: 'Yes. The system allows selecting bed tiers if compartments are available.'
       },
       {
-        q: 'Giường tầng 1, 2, 3 có khác nhau không?',
-        a: 'Có. DSVN hiện có hai loại khoang giường phổ biến: khoang 4 giường (2 tầng) và khoang 6 giường (3 tầng). Sự khác nhau giữa các tầng thể hiện ở: độ cao trần, độ rộng leo lên, vị trí ổ điện, và độ tiện nghi tổng thể.\nKích thước giường:\nKhoang 4 giường (ANL): 80 × 190 cm\nKhoang 6 giường (BNL): 78 × 190 cm\nĐộ cao tầng giường:\nTầng 1 → Tầng 2: ~72–75 cm\nTầng 2 → Tầng 3: ~65 cm\nKhoảng trần tầng 3: rất thấp, chỉ khoảng 50–55 cm, phải cúi thấp người khi lên xuống và không thể ngồi thẳng lưng với người cao trên 1m60.\nTầng 1 là rộng rãi và dễ di chuyển nhất, đặc biệt phù hợp người cao tuổi.\nĐể hình dung: bình nước lavie 20L cao 58 cm, người có thể ngồi thẳng ở tầng 1, hơi khom lưng ở tầng 2, và phải bò khi vào tầng 3.'
+        q: 'Are 1st, 2nd, 3rd tier beds different?',
+        a: 'Yes. DSVN currently has two common sleeping compartment types: 4-bed compartments (2 tiers) and 6-bed compartments (3 tiers). Differences between tiers are shown in: ceiling height, climbing width, power outlet location, and overall comfort.\nBed dimensions:\n4-bed compartments (ANL): 80 × 190 cm\n6-bed compartments (BNL): 78 × 190 cm\nTier heights:\nTier 1 → Tier 2: ~72–75 cm\nTier 2 → Tier 3: ~65 cm\nTier 3 ceiling space: very low, only about 50–55 cm, must bend low when getting up/down and cannot sit straight for people taller than 1m60.\nTier 1 is the most spacious and easiest to move around, especially suitable for elderly people.\nTo visualize: 20L lavie water bottle is 58 cm tall, people can sit straight on tier 1, slightly hunched on tier 2, and must crawl when entering tier 3.'
       },
       {
-        q: 'Ghế nào phù hợp cho người lớn tuổi?',
-        a: 'Nên chọn khoang giường tầng 1 hoặc ghế mềm loại rộng. Có thể báo nhân viên hỗ trợ trước.'
+        q: 'Which seats are suitable for elderly people?',
+        a: 'Should choose tier 1 sleeping compartments or wide soft seats. Can notify staff for assistance in advance.'
       }
     ]
   },
   {
     id: 'service',
-    name: 'Tiện nghi & dịch vụ trên tàu',
+    name: 'Amenities & Services Onboard',
     icon: '🚆',
     faqs: [
       {
-        q: 'Trên tàu có ổ sạc điện thoại/laptop không?',
-        a: 'Không có ổ điện cá nhân tại từng giường. Ổ cắm (thường là ổ đơn) được đặt ở đầu toa, phía trên cửa ra vào khoang. Hành khách tầng 1 cần trèo lên nếu muốn sử dụng.\nĐối với các tàu mới như tàu SE29, SE21/22 thì mỗi giường được trang bị ổ sạc USB ngay đầu giường kèm đèn đọc sách.'
+        q: 'Are there phone/laptop charging outlets on the train?',
+        a: 'No personal power outlets at each bed. Outlets (usually single outlets) are placed at the end of the car, above the compartment entrance door. Tier 1 passengers need to climb up if they want to use them.\nFor newer trains like SE29, SE21/22, each bed is equipped with USB charging ports right at the head of the bed along with reading lights.'
       },
       {
-        q: 'Tàu có wifi hoặc sóng điện thoại không?',
-        a: 'Không có wifi. Sóng điện thoại phụ thuộc khu vực; một số đoạn đèo hoặc hầm sẽ mất sóng.'
+        q: 'Does the train have wifi or phone signal?',
+        a: 'No wifi. Phone signal depends on the area; some mountain or tunnel sections will lose signal.'
       },
       {
-        q: 'Có phục vụ ăn uống trên tàu không?',
-        a: 'Có. Một số tuyến dài có bán suất ăn và nước uống. Bạn cũng có thể mang theo đồ riêng.'
+        q: 'Is food service available on the train?',
+        a: 'Yes. Some long routes sell meals and drinks. You can also bring your own food.'
       }
     ]
   },
   {
     id: 'hygiene',
-    name: 'Vệ sinh, thực phẩm và an toàn',
+    name: 'Hygiene, Food and Safety',
     icon: '🧼',
     faqs: [
       {
-        q: 'Trên tàu có nhà vệ sinh không?',
-        a: 'Có. Mỗi toa đều có nhà vệ sinh cơ bản, được vệ sinh định kỳ.'
+        q: 'Are there toilets on the train?',
+        a: 'Yes. Each car has basic toilets that are cleaned regularly.'
       },
       {
-        q: 'Tôi có được mang thức ăn riêng lên tàu không?',
-        a: 'Được. Tuy nhiên nên tránh mang thực phẩm nặng mùi hoặc dễ đổ vỡ.'
+        q: 'Can I bring my own food on the train?',
+        a: 'Yes. However, avoid bringing food with strong odors or that is easily spilled.'
       },
       {
-        q: 'Có giới hạn gì về đồ dễ vỡ không?',
-        a: 'Không cấm, nhưng bạn tự chịu trách nhiệm nếu làm rơi hoặc vỡ trong hành trình.'
+        q: 'Are there any restrictions on fragile items?',
+        a: 'Not prohibited, but you are responsible if items are dropped or broken during the journey.'
       }
     ]
   },
   {
     id: 'support',
-    name: 'Hỗ trợ đặc biệt cho hành khách yếu thế',
+    name: 'Special Assistance for Vulnerable Passengers',
     icon: '♿',
     faqs: [
       {
-        q: 'Người cao tuổi hoặc trẻ em có được hỗ trợ gì không?',
-        a: 'Có thể yêu cầu nhân viên hỗ trợ khi lên/xuống tàu nếu báo trước tại quầy vé hoặc hotline.'
+        q: 'What assistance is available for elderly people or children?',
+        a: 'Can request staff assistance when boarding/disembarking if notified in advance at ticket counters or hotline.'
       },
       {
-        q: 'Tôi có thể yêu cầu giúp khuân vác hành lý không?',
-        a: 'Chỉ áp dụng tại một số ga lớn. Vui lòng hỏi trước để được hướng dẫn cụ thể.'
+        q: 'Can I request help with luggage handling?',
+        a: 'Only available at some major stations. Please ask in advance for specific guidance.'
       },
       {
-        q: 'Tôi là người khuyết tật, nên làm gì để được hỗ trợ?',
-        a: 'Vui lòng liên hệ tổng đài hoặc nhân viên quầy vé ít nhất 24 giờ trước giờ tàu chạy để được bố trí phù hợp.'
+        q: 'I am disabled, what should I do to get assistance?',
+        a: 'Please contact the hotline or ticket counter staff at least 24 hours before departure time for appropriate arrangements.'
       }
     ]
   }

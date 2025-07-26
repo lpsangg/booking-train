@@ -17,7 +17,7 @@ const FAQCategory = () => {
   }, [qIdx]);
 
   if (!category) {
-    return <div style={{ padding: 32, color: '#e53935', fontWeight: 600 }}>Không tìm thấy chủ đề FAQ này.</div>;
+    return <div style={{ padding: 32, color: '#e53935', fontWeight: 600 }}>FAQ topic not found.</div>;
   }
 
   return (
