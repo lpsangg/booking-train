@@ -4,35 +4,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "routes": [
-    {
-      "src": "/main",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/tickets",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/notifications",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/account",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/select-seat",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/login",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/register",
-      "dest": "/index.html"
-    }
   ]
 } 
