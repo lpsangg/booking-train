@@ -66,24 +66,13 @@ const Payment = () => {
       if (parts.length === 2) {
         const coachId = parseInt(parts[0]);
         const seatNumber = parseInt(parts[1]);
-        
-        // Toa 3 trở đi là toa nằm
-        if (coachId >= 3) {
-          // Tính khoang và giường dựa trên số ghế
-          const berthsPerCompartment = 6; // Khoang 6 giường
-          const compartment = Math.floor((seatNumber - 1) / berthsPerCompartment) + 1;
-          const berthInCompartment = ((seatNumber - 1) % berthsPerCompartment) + 1;
-          return `Coach ${coachId} compartment ${compartment} berth ${berthInCompartment}`;
-        } else {
-          // Toa 1-2 là toa ngồi
           return `Coach ${coachId} - Seat ${seatNumber}`;
-        }
       }
       return seat;
     }
     
     // Nếu có nhiều ghế, nhóm theo toa
-    const seatsByCoach: { [key: string]: { isSleeper: boolean; seats: number[] } } = {};
+    const seatsByCoach: { [key: string]: { seats: number[] } } = {};
     selectedSeats.forEach((seat: string) => {
       const parts = seat.split('-');
       if (parts.length === 2) {
@@ -92,7 +81,6 @@ const Payment = () => {
         
         if (!seatsByCoach[coachId]) {
           seatsByCoach[coachId] = {
-            isSleeper: parseInt(coachId) >= 3,
             seats: []
           };
         }
@@ -104,38 +92,7 @@ const Payment = () => {
     const coachInfo = Object.entries(seatsByCoach).map(([coachId, info]) => {
       const sortedSeats = info.seats.sort((a, b) => a - b);
       
-      if (info.isSleeper) {
-        // Toa nằm: hiển thị theo khoang và giường
-        const berthsPerCompartment = 6;
-        const compartments: { [key: number]: number[] } = {};
-        
-        sortedSeats.forEach(seatNumber => {
-          const compartment = Math.floor((seatNumber - 1) / berthsPerCompartment) + 1;
-          const berthInCompartment = ((seatNumber - 1) % berthsPerCompartment) + 1;
-          
-          if (!compartments[compartment]) {
-            compartments[compartment] = [];
-          }
-          compartments[compartment].push(berthInCompartment);
-        });
-        
-        const compartmentInfo = Object.entries(compartments).map(([compNum, berths]) => {
-          const sortedBerths = berths.sort((a, b) => a - b);
-          let berthDisplay = '';
-          
-          // Kiểm tra nếu là dãy liên tiếp
-          if (sortedBerths.length > 1 && sortedBerths[sortedBerths.length - 1] - sortedBerths[0] === sortedBerths.length - 1) {
-            berthDisplay = `${sortedBerths[0]}-${sortedBerths[sortedBerths.length - 1]}`;
-          } else {
-            berthDisplay = sortedBerths.join(', ');
-          }
-          
-          return `compartment ${compNum} berth ${berthDisplay}`;
-        });
-        
-        return `Coach ${coachId} ${compartmentInfo.join('; ')}`;
-      } else {
-        // Toa ngồi: hiển thị theo ghế
+      // Hiển thị tên ghế cho tất cả các toa
         let seatDisplay = '';
         
         // Kiểm tra nếu là dãy liên tiếp
@@ -145,8 +102,7 @@ const Payment = () => {
           seatDisplay = sortedSeats.join(', ');
         }
         
-        return `Coach ${coachId}: Seat ${seatDisplay}`;
-      }
+      return `Coach ${coachId} - Seat ${seatDisplay}`;
     });
     
     return coachInfo.join('; ');
@@ -209,9 +165,75 @@ const Payment = () => {
         <div className={styles.methodSection}>
           <div className={styles.methodTitle}>Payment Method</div>
           <div className={styles.methodOptions}>
-            <label><input type="radio" name="method" checked={method === 'card'} onChange={() => setMethod('card')} /> Visa/Mastercard</label>
-            <label><input type="radio" name="method" checked={method === 'momo'} onChange={() => setMethod('momo')} /> Momo</label>
-            <label><input type="radio" name="method" checked={method === 'zalopay'} onChange={() => setMethod('zalopay')} /> ZaloPay</label>
+            <label onClick={() => setMethod('card')} style={{ cursor: 'pointer' }}>
+              <div style={{ 
+                width: 16, 
+                height: 16, 
+                background: method === 'card' ? '#1976d2' : '#fff', 
+                border: '2px solid #1976d2',
+                borderRadius: '50%',
+                marginRight: 8,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {method === 'card' && (
+                  <div style={{ 
+                    width: 6, 
+                    height: 6, 
+                    background: '#fff', 
+                    borderRadius: '50%' 
+                  }}></div>
+                )}
+              </div>
+              Visa/Mastercard
+            </label>
+            <label onClick={() => setMethod('momo')} style={{ cursor: 'pointer' }}>
+              <div style={{ 
+                width: 16, 
+                height: 16, 
+                background: method === 'momo' ? '#1976d2' : '#fff', 
+                border: '2px solid #1976d2',
+                borderRadius: '50%',
+                marginRight: 8,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {method === 'momo' && (
+                  <div style={{ 
+                    width: 6, 
+                    height: 6, 
+                    background: '#fff', 
+                    borderRadius: '50%' 
+                  }}></div>
+                )}
+              </div>
+              Momo
+            </label>
+            <label onClick={() => setMethod('zalopay')} style={{ cursor: 'pointer' }}>
+              <div style={{ 
+                width: 16, 
+                height: 16, 
+                background: method === 'zalopay' ? '#1976d2' : '#fff', 
+                border: '2px solid #1976d2',
+                borderRadius: '50%',
+                marginRight: 8,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {method === 'zalopay' && (
+                  <div style={{ 
+                    width: 6, 
+                    height: 6, 
+                    background: '#fff', 
+                    borderRadius: '50%' 
+                  }}></div>
+                )}
+              </div>
+              ZaloPay
+            </label>
           </div>
         </div>
 

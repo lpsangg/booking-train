@@ -337,193 +337,7 @@ const BedIconOccupied = ({ size = 32 }) => (
 
 // Bảng noise cho từng khoang/tầng của toa 2 (Gối mềm)
 // const NOISE_MATRIX_2 = [ ... ];
-// function getNoiseColor2(value: number) { ... }
 
-// Bảng noise cho từng khoang/tầng của toa 3 (Nằm khoang 6)
-const NOISE_KHOANGS_1 = [
-  // Hàng 1
-  [1200, 1205, 1210, 1215, 1220, 1225, 1230],
-  // Hàng 2
-  [1235, 1240, 1245, 1250, 1255, 1260, 1265],
-  // Hàng 3
-  [1270, 1275, 1280, 1285, 1290, 1295, 1300],
-  // Hàng 4
-  [1305, 1310, 1315, 1320, 1325, 1330, 1335],
-];
-
-// Bảng noise cho từng khoang/tầng của toa 4 (Nằm khoang 6)
-const NOISE_KHOANGS_2 = [
-  // Hàng 1
-  [1340, 1345, 1350, 1355, 1360, 1365, 1370],
-  // Hàng 2
-  [1375, 1380, 1385, 1390, 1395, 1400, 1405],
-  // Hàng 3
-  [1410, 1415, 1420, 1425, 1430, 1435, 1440],
-  // Hàng 4
-  [1445, 1450, 1455, 1460, 1465, 1470, 1475],
-];
-// Màu sắc: gradient cam-xanh lá
-
-
-
-
-// Bảng noise cho từng khoang/tầng của toa 6 (6-berth cabin) - Giá trị thấp (màu đỏ)
-const NOISE_KHOANGS_4 = [
-  // Khoang 1
-  [100, 120, 140, 110, 130, 150],
-  // Khoang 2
-  [160, 180, 200, 170, 190, 210],
-  // Khoang 3
-  [220, 240, 260, 230, 250, 270],
-  // Khoang 4
-  [280, 300, 320, 290, 310, 330],
-  // Khoang 5
-  [340, 360, 380, 350, 370, 390],
-  // Khoang 6
-  [400, 420, 440, 410, 430, 450],
-  // Khoang 7
-  [460, 480, 500, 470, 490, 510],
-];
-// Màu sắc: gradient đỏ-xanh lá
-function getNoiseColor4_v2(value: number) {
-  // Gradient từ #f97316 (cam đậm) đến #22c55e (xanh lá)
-  // Giá trị nhỏ nhất: 100, lớn nhất: 510
-  const min = 100, max = 510;
-  const percent = (value - min) / (max - min);
-  function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-  const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 };
-  const r = Math.round(lerp(c1.r, c2.r, percent));
-  const g = Math.round(lerp(c1.g, c2.g, percent));
-  const b = Math.round(lerp(c1.b, c2.b, percent));
-  return `rgb(${r},${g},${b})`;
-}
-
-// Bảng noise cho từng khoang/tầng của toa 7 (6-berth cabin) - Giá trị trung bình
-const NOISE_KHOANGS_5 = [
-  // Khoang 1
-  [520, 540, 560, 530, 550, 570],
-  // Khoang 2
-  [580, 600, 620, 590, 610, 630],
-  // Khoang 3
-  [640, 660, 680, 650, 670, 690],
-  // Khoang 4
-  [700, 720, 740, 710, 730, 750],
-  // Khoang 5
-  [760, 780, 800, 770, 790, 810],
-  // Khoang 6
-  [820, 840, 860, 830, 850, 870],
-  // Khoang 7
-  [880, 900, 920, 890, 910, 930],
-];
-// Màu sắc: gradient xanh lá nhạt đến xanh lá đậm
-function getNoiseColor5_v2(value: number) {
-  // Gradient từ #bbf7d0 (xanh lá nhạt) đến #22c55e (xanh lá đậm)
-  // Giá trị nhỏ nhất: 768, lớn nhất: 847
-  const min = 768, max = 847;
-  const percent = (value - min) / (max - min);
-  function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-  const c1 = { r: 187, g: 247, b: 208 }, c2 = { r: 34, g: 197, b: 94 };
-  const r = Math.round(lerp(c1.r, c2.r, percent));
-  const g = Math.round(lerp(c1.g, c2.g, percent));
-  const b = Math.round(lerp(c1.b, c2.b, percent));
-  return `rgb(${r},${g},${b})`;
-}
-
-
-
-
-// Bảng noise cho từng khoang/tầng của toa 8 (4-berth cabin) - Giá trị trung bình cao
-const NOISE_KHOANGS_4_8 = [
-  // Khoang 1
-  [940, 960, 980, 950],
-  // Khoang 2
-  [1000, 1020, 1040, 1010],
-  // Khoang 3
-  [1060, 1080, 1100, 1070],
-  // Khoang 4
-  [1120, 1140, 1160, 1130],
-  // Khoang 5
-  [1180, 1200, 1220, 1190],
-  // Khoang 6
-  [1240, 1260, 1280, 1250],
-  // Khoang 7
-  [1300, 1320, 1340, 1310],
-];
-// Màu sắc: gradient đỏ-xanh lá
-function getNoiseColor4_8_v2(value: number) {
-  // Gradient từ #f97316 (cam đậm) đến #22c55e (xanh lá)
-  // Giá trị nhỏ nhất: 940, lớn nhất: 1340
-  const min = 940, max = 1340;
-  const percent = (value - min) / (max - min);
-  function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-  const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 };
-  const r = Math.round(lerp(c1.r, c2.r, percent));
-  const g = Math.round(lerp(c1.g, c2.g, percent));
-  const b = Math.round(lerp(c1.b, c2.b, percent));
-  return `rgb(${r},${g},${b})`;
-}
-
-// Bảng noise cho từng khoang/tầng của toa 9 (4-berth cabin) - Giá trị cao
-const NOISE_KHOANGS_4_9 = [
-  // Khoang 1
-  [1360, 1380, 1400, 1370],
-  // Khoang 2
-  [1420, 1440, 1460, 1430],
-  // Khoang 3
-  [1480, 1500, 1520, 1490],
-  // Khoang 4
-  [1540, 1560, 1580, 1550],
-  // Khoang 5
-  [1600, 1620, 1640, 1610],
-  // Khoang 6
-  [1660, 1680, 1700, 1670],
-  // Khoang 7
-  [1720, 1740, 1760, 1730],
-];
-// Màu sắc: gradient đỏ-xanh lá
-function getNoiseColor4_9_v2(value: number) {
-  // Gradient từ #f97316 (cam đậm) đến #22c55e (xanh lá)
-  // Giá trị nhỏ nhất: 1360, lớn nhất: 1760
-  const min = 1360, max = 1760;
-  const percent = (value - min) / (max - min);
-  function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-  const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 };
-  const r = Math.round(lerp(c1.r, c2.r, percent));
-  const g = Math.round(lerp(c1.g, c2.g, percent));
-  const b = Math.round(lerp(c1.b, c2.b, percent));
-  return `rgb(${r},${g},${b})`;
-}
-
-// Bảng noise cho từng khoang/tầng của toa 10 (4-berth cabin) - Giá trị cao nhất (màu xanh)
-const NOISE_KHOANGS_4_10 = [
-  // Khoang 1
-  [1780, 1800, 1820, 1790],
-  // Khoang 2
-  [1840, 1860, 1880, 1850],
-  // Khoang 3
-  [1900, 1920, 1940, 1910],
-  // Khoang 4
-  [1960, 1980, 2000, 1970],
-  // Khoang 5
-  [2020, 2040, 2060, 2030],
-  // Khoang 6
-  [2080, 2100, 2120, 2090],
-  // Khoang 7
-  [2140, 2160, 2180, 2150],
-];
-// Màu sắc: gradient đỏ-xanh lá
-function getNoiseColor4_10_v2(value: number) {
-  // Gradient từ #f97316 (cam đậm) đến #22c55e (xanh lá)
-  // Giá trị nhỏ nhất: 1780, lớn nhất: 2180
-  const min = 1780, max = 2180;
-  const percent = (value - min) / (max - min);
-  function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-  const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 };
-  const r = Math.round(lerp(c1.r, c2.r, percent));
-  const g = Math.round(lerp(c1.g, c2.g, percent));
-  const b = Math.round(lerp(c1.b, c2.b, percent));
-  return `rgb(${r},${g},${b})`;
-}
 
 const SelectSeat: React.FC = () => {
   console.log('🚀 SelectSeat component loaded!');
@@ -585,6 +399,8 @@ const SelectSeat: React.FC = () => {
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
   const [selectedCoachIdx, setSelectedCoachIdx] = useState(0);
   const [autoSelectMessage, setAutoSelectMessage] = useState<string>('');
+  const [showFamilyWarningModal, setShowFamilyWarningModal] = useState(false);
+  const [showLevelWarningModal, setShowLevelWarningModal] = useState(false);
 
   // Tạo mô tả hành khách
   const getPassengerDescription = () => {
@@ -1052,6 +868,10 @@ useEffect(() => {
     } else if (coach.type === '4-berth Family cabin') {
       // 7 khoang, mỗi khoang 2 tầng, mỗi tầng 2 ghế (Family compartment)
       for (let khoang = 0; khoang < 7; khoang++) {
+        // Random cho từng hàng (level) - 2 ghế cùng hàng cùng trạng thái
+        const isLevel1Occupied = Math.random() > 0.85;
+        const isLevel2Occupied = Math.random() > 0.85;
+        
         // Tầng 1
         for (let viTri = 0; viTri < 2; viTri++) {
           const soGheThucTe = khoang * 4 + viTri + 1;
@@ -1070,7 +890,7 @@ useEffect(() => {
             column: soGheThucTe,
             floor: 1,
             price: price,
-            status: Math.random() > 0.85 ? 'occupied' : 'available',
+            status: isLevel1Occupied ? 'occupied' : 'available',
             behavior: getBehaviorFromColor(coach.id, soGheThucTe - 1),
             nearWC: false,
             nearSimilarBehavior: false,
@@ -1095,7 +915,7 @@ useEffect(() => {
             column: soGheThucTe,
             floor: 2,
             price: price,
-            status: Math.random() > 0.85 ? 'occupied' : 'available',
+            status: isLevel2Occupied ? 'occupied' : 'available',
             behavior: getBehaviorFromColor(coach.id, soGheThucTe - 1),
             nearWC: false,
             nearSimilarBehavior: false,
@@ -1106,6 +926,11 @@ useEffect(() => {
     } else if (coach.type === '6-berth Family cabin') {
       // 7 khoang, mỗi khoang 3 tầng, mỗi tầng 2 ghế (Family compartment)
       for (let khoang = 0; khoang < 7; khoang++) {
+        // Random cho từng hàng (level) - 2 ghế cùng hàng cùng trạng thái
+        const isLevel1Occupied = Math.random() > 0.85;
+        const isLevel2Occupied = Math.random() > 0.85;
+        const isLevel3Occupied = Math.random() > 0.85;
+        
         // Tầng 1
         for (let viTri = 0; viTri < 2; viTri++) {
           const soGheThucTe = khoang * 6 + viTri + 1;
@@ -1124,7 +949,7 @@ useEffect(() => {
             column: soGheThucTe,
             floor: 1,
             price: price,
-            status: Math.random() > 0.85 ? 'occupied' : 'available',
+            status: isLevel1Occupied ? 'occupied' : 'available',
             behavior: getBehaviorFromColor(coach.id, soGheThucTe - 1),
             nearWC: false,
             nearSimilarBehavior: false,
@@ -1150,7 +975,7 @@ useEffect(() => {
             column: soGheThucTe,
             floor: 2,
             price: price,
-            status: Math.random() > 0.85 ? 'occupied' : 'available',
+            status: isLevel2Occupied ? 'occupied' : 'available',
             behavior: getBehaviorFromColor(coach.id, soGheThucTe - 1),
             nearWC: false,
             nearSimilarBehavior: false,
@@ -1176,7 +1001,7 @@ useEffect(() => {
             column: soGheThucTe,
             floor: 3,
             price: price,
-            status: Math.random() > 0.85 ? 'occupied' : 'available',
+            status: isLevel3Occupied ? 'occupied' : 'available',
             behavior: getBehaviorFromColor(coach.id, soGheThucTe - 1),
             nearWC: false,
             nearSimilarBehavior: false,
@@ -1765,6 +1590,140 @@ useEffect(() => {
     const seat = coachSeats[COACHES[selectedCoachIdx].id]?.find(s => s.id === seatId);
     if (!seat || seat.status !== 'available') return;
     
+    // Kiểm tra quy tắc Family cabin
+    const currentCoach = COACHES[selectedCoachIdx];
+    const isFamilyCabin = currentCoach.type.includes('Family');
+    
+          if (isFamilyCabin) {
+        // Kiểm tra số lượng hành khách cho Family cabin
+        if (totalPassengers < 2) {
+          setShowFamilyWarningModal(true);
+          return;
+        }
+        
+        // Kiểm tra nếu đang chọn ghế trong Family cabin
+        const selectedSeatsInFamilyCabin = selectedSeatIds.filter(id => {
+          const parts = id.split('-');
+          const coachId = parseInt(parts[0]);
+          return coachId === currentCoach.id;
+        });
+        
+        // Nếu đã chọn ghế trong Family cabin, chỉ cho phép chọn thêm ghế cùng level hoặc bỏ chọn ghế đã chọn
+        if (selectedSeatsInFamilyCabin.length > 0) {
+          // Kiểm tra xem có phải đang bỏ chọn ghế không
+          const isUnselecting = selectedSeatIds.includes(seatId);
+          if (!isUnselecting) {
+            // Nếu đã có 2 ghế được chọn trong Family cabin, không cho phép chọn thêm
+            if (selectedSeatsInFamilyCabin.length >= 2) {
+              setShowLevelWarningModal(true);
+              return;
+            }
+            
+            // Kiểm tra xem ghế mới có cùng level với ghế đã chọn không
+            const selectedSeatId = selectedSeatsInFamilyCabin[0];
+            const selectedSeatParts = selectedSeatId.split('-');
+            const selectedSeatNumber = parseInt(selectedSeatParts[1]);
+            
+            const newSeatParts = seatId.split('-');
+            const newSeatNumber = parseInt(newSeatParts[1]);
+            
+            // Tính level dựa trên loại coach
+            let selectedSeatLevel, newSeatLevel;
+            if (currentCoach.type === '4-berth Family cabin') {
+              // Coach 4: 4 ghế/compartment, 2 levels
+              selectedSeatLevel = Math.floor((selectedSeatNumber - 1) % 4 / 2) + 1;
+              newSeatLevel = Math.floor((newSeatNumber - 1) % 4 / 2) + 1;
+            } else if (currentCoach.type === '6-berth Family cabin') {
+              // Coach 5: 6 ghế/compartment, 3 levels
+              selectedSeatLevel = Math.floor((selectedSeatNumber - 1) % 6 / 2) + 1;
+              newSeatLevel = Math.floor((newSeatNumber - 1) % 6 / 2) + 1;
+            } else {
+              // Fallback cho các coach khác
+              selectedSeatLevel = Math.floor((selectedSeatNumber - 1) % 6 / 2) + 1;
+              newSeatLevel = Math.floor((newSeatNumber - 1) % 6 / 2) + 1;
+            }
+            
+            if (selectedSeatLevel !== newSeatLevel) {
+              // Hiển thị thông báo lỗi
+              setShowLevelWarningModal(true);
+              return;
+            }
+            
+            console.log('Adding another berth to family cabin booking - same level');
+          }
+        }
+        
+        // Nếu đây là ghế đầu tiên được chọn trong Family cabin, tự động chọn thêm 1 ghế nữa
+        if (selectedSeatsInFamilyCabin.length === 0) {
+          const seatParts = seatId.split('-');
+          const seatNumber = parseInt(seatParts[1]);
+          
+          // Tìm ghế cùng compartment
+          let compartment, compartmentStart, compartmentEnd, seatLevel;
+          if (currentCoach.type === '4-berth Family cabin') {
+            // Coach 4: 4 ghế/compartment
+            compartment = Math.floor((seatNumber - 1) / 4) + 1;
+            compartmentStart = (compartment - 1) * 4 + 1;
+            compartmentEnd = compartment * 4;
+            seatLevel = Math.floor((seatNumber - 1) % 4 / 2) + 1; // Level 1 hoặc 2
+          } else if (currentCoach.type === '6-berth Family cabin') {
+            // Coach 5: 6 ghế/compartment
+            compartment = Math.floor((seatNumber - 1) / 6) + 1;
+            compartmentStart = (compartment - 1) * 6 + 1;
+            compartmentEnd = compartment * 6;
+            seatLevel = Math.floor((seatNumber - 1) % 6 / 2) + 1; // Level 1, 2 hoặc 3
+          } else {
+            // Fallback cho các coach khác
+            compartment = Math.floor((seatNumber - 1) / 6) + 1;
+            compartmentStart = (compartment - 1) * 6 + 1;
+            compartmentEnd = compartment * 6;
+            seatLevel = Math.floor((seatNumber - 1) % 6 / 2) + 1;
+          }
+          
+          // Tìm ghế trống khác trong cùng compartment, ưu tiên ghế nằm ngang
+          const availableSeatsInCompartment: Array<{seatId: string; isSameLevel: boolean; seatNumber: number}> = [];
+          
+          for (let i = compartmentStart; i <= compartmentEnd; i++) {
+            const otherSeatId = `${currentCoach.id}-${i}`;
+            const otherSeat = coachSeats[currentCoach.id]?.find(s => s.id === otherSeatId);
+            if (otherSeat && otherSeat.status === 'available' && otherSeatId !== seatId) {
+              let otherSeatLevel;
+              if (currentCoach.type === '4-berth Family cabin') {
+                otherSeatLevel = Math.floor((i - 1) % 4 / 2) + 1;
+              } else if (currentCoach.type === '6-berth Family cabin') {
+                otherSeatLevel = Math.floor((i - 1) % 6 / 2) + 1;
+              } else {
+                otherSeatLevel = Math.floor((i - 1) % 6 / 2) + 1;
+              }
+              const isSameLevel = otherSeatLevel === seatLevel;
+              
+              availableSeatsInCompartment.push({
+                seatId: otherSeatId,
+                isSameLevel,
+                seatNumber: i
+              });
+            }
+          }
+          
+          // Nếu có ghế trống, ưu tiên chọn ghế cùng level
+          if (availableSeatsInCompartment.length > 0) {
+            // Sắp xếp: ghế cùng level trước, sau đó theo số thứ tự
+            availableSeatsInCompartment.sort((a, b) => {
+              if (a.isSameLevel && !b.isSameLevel) return -1;
+              if (!a.isSameLevel && b.isSameLevel) return 1;
+              return a.seatNumber - b.seatNumber;
+            });
+            
+            const autoSelectSeatId = availableSeatsInCompartment[0].seatId;
+            setSelectedSeatIds(prev => {
+              const newSelected = [...prev, seatId, autoSelectSeatId];
+              return newSelected;
+            });
+            return;
+          }
+        }
+      }
+    
     setSelectedSeatIds(prev => {
       const newSelected = [...prev];
       const idx = newSelected.indexOf(seatId);
@@ -1773,19 +1732,13 @@ useEffect(() => {
         // Bỏ chọn ghế
         newSelected.splice(idx, 1);
       } else {
-        // Chọn ghế mới
-        if (newSelected.length < totalPassengers) {
-          newSelected.push(seatId);
-          
-          // Thông báo khi chọn đủ ghế
-          if (newSelected.length === totalPassengers) {
-            // Có thể thêm hiệu ứng hoặc âm thanh thông báo ở đây
-            console.log('All seats selected!');
-          }
+        // Chọn ghế mới - thay thế ghế cũ nếu đã đủ số lượng
+        if (newSelected.length >= totalPassengers) {
+          // Thay thế ghế đầu tiên bằng ghế mới
+          newSelected[0] = seatId;
         } else {
-          // Thông báo khi đã chọn đủ ghế
-          alert(`You have already selected ${totalPassengers} seat${totalPassengers > 1 ? 's' : ''}. Please unselect a seat first if you want to choose a different one.`);
-          return prev; // Không thay đổi
+          // Thêm ghế mới
+          newSelected.push(seatId);
         }
       }
       
@@ -2127,7 +2080,7 @@ useEffect(() => {
       setFilterMinPrice(realMinPrice);
       setFilterMaxPrice(realMaxPrice);
     }
-  }, [allPrices]);
+  }, [allPrices, setFilterMinPrice, setFilterMaxPrice]);
   
   // Debounced filter update khi user kéo slider
   const handlePriceRangeChange = (value: number | number[]) => {
@@ -2476,7 +2429,7 @@ useEffect(() => {
     if ((passenger.child > 0 || passenger.elderly > 0 || passenger.nursing > 0)) {
       setShowWcSuggest(true);
     }
-  }, [passenger.child, passenger.elderly]);
+  }, [passenger.child, passenger.elderly, passenger.nursing]);
 
   return (
     <>
@@ -2791,9 +2744,10 @@ useEffect(() => {
               👨‍👩‍👧‍👦 Family Zone Booking Rules
             </div>
             <div style={{ fontSize: 13, color: '#bf8900', lineHeight: 1.4 }}>
-              <div>• For groups of 3: Pay for 4 beds </div>
-              <div>• For groups of 4: Pay for 4 beds (standard compartment)</div>
-              <div>• For groups of 5-6: Pay for 6 beds (family compartment)</div>
+              <div>• Minimum 2 passengers required for family cabins</div>
+              <div>• Must book at least 2 berths together (no individual bookings)</div>
+              <div>• For groups of 3-4: Pay for 4 berths (4-berth family cabin)</div>
+              <div>• For groups of 5-6: Pay for 6 berths (6-berth family cabin)</div>
               <div>• Entire compartment is reserved for your family</div>
             </div>
           </div>
@@ -2821,13 +2775,49 @@ useEffect(() => {
         {/* Seat status legend */}
         <div style={{ display: 'flex', gap: 16, fontSize: 14, marginBottom: 8, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <input type="checkbox" checked={false} readOnly style={{ accentColor: '#10b981' }} /> Available
+            <div style={{ 
+              width: 16, 
+              height: 16, 
+              background: '#fff', 
+              border: '2px solid #10b981',
+              borderRadius: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}></div>
+            Available
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <input type="checkbox" checked={true} readOnly style={{ accentColor: '#4caf50' }} /> Selected
+            <div style={{ 
+              width: 16, 
+              height: 16, 
+              background: '#4caf50', 
+              border: '2px solid #4caf50',
+              borderRadius: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontSize: 10,
+              fontWeight: 700
+            }}>✓</div>
+            Selected
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <input type="checkbox" checked={true} disabled readOnly style={{ accentColor: '#bdbdbd' }} /> Sold
+            <div style={{ 
+              width: 16, 
+              height: 16, 
+              background: '#fff', 
+              border: '2px solid #bdbdbd',
+              borderRadius: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#bdbdbd',
+              fontSize: 10,
+              fontWeight: 700
+            }}>✓</div>
+            Sold
           </div>
           {isFilterActive && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -3294,6 +3284,160 @@ useEffect(() => {
               }}
             >
               OK, Got it!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Family Warning Modal */}
+      {showFamilyWarningModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.4)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: 16,
+            padding: '32px 24px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+            maxWidth: 400,
+            textAlign: 'center',
+            transform: 'scale(1)',
+            animation: 'slideUp 0.3s ease'
+          }}>
+            <div style={{ 
+              fontSize: 48, 
+              marginBottom: 16,
+              color: '#ff9800'
+            }}>
+              👨‍👩‍👧‍👦
+            </div>
+            <div style={{ 
+              fontWeight: 700, 
+              fontSize: 20, 
+              marginBottom: 12,
+              color: '#e65100'
+            }}>
+              Family Cabin Requirements
+            </div>
+            <div style={{ 
+              fontSize: 15, 
+              marginBottom: 24,
+              color: '#666',
+              lineHeight: 1.5
+            }}>
+              Family cabins require at least 2 passengers. Single passengers cannot book family compartments.
+            </div>
+            <button 
+              onClick={() => setShowFamilyWarningModal(false)} 
+              style={{ 
+                background: 'linear-gradient(45deg, #ff9800, #ffb74d)', 
+                color: '#fff', 
+                border: 'none', 
+                borderRadius: 12, 
+                padding: '12px 32px', 
+                fontWeight: 700, 
+                fontSize: 15, 
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(255, 152, 0, 0.3)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 152, 0, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 152, 0, 0.3)';
+              }}
+            >
+              I Understand
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Level Warning Modal */}
+      {showLevelWarningModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'rgba(0,0,0,0.4)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: 16,
+            padding: '32px 24px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+            maxWidth: 400,
+            textAlign: 'center',
+            transform: 'scale(1)',
+            animation: 'slideUp 0.3s ease'
+          }}>
+            <div style={{ 
+              fontSize: 48, 
+              marginBottom: 16,
+              color: '#ff9800'
+            }}>
+              🚫
+            </div>
+            <div style={{ 
+              fontWeight: 700, 
+              fontSize: 20, 
+              marginBottom: 12,
+              color: '#e65100'
+            }}>
+              Same Level Required
+            </div>
+            <div style={{ 
+              fontSize: 15, 
+              marginBottom: 24,
+              color: '#666',
+              lineHeight: 1.5
+            }}>
+              Trong Family cabin, bạn chỉ có thể chọn tối đa 2 ghế cùng level (cùng hàng). Vui lòng bỏ chọn ghế hiện tại trước khi chọn ghế khác.
+            </div>
+            <button 
+              onClick={() => setShowLevelWarningModal(false)} 
+              style={{ 
+                background: 'linear-gradient(45deg, #ff9800, #ffb74d)', 
+                color: '#fff', 
+                border: 'none', 
+                borderRadius: 12, 
+                padding: '12px 32px', 
+                fontWeight: 700, 
+                fontSize: 15, 
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(255, 152, 0, 0.3)',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 152, 0, 0.4)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 152, 0, 0.3)';
+              }}
+            >
+              I Understand
             </button>
           </div>
         </div>

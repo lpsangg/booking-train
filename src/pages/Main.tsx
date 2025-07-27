@@ -1256,7 +1256,7 @@ const Main = () => {
           <div style={{ background: '#fff', borderRadius: 16, padding: 32, minWidth: 320, maxWidth: 400, boxShadow: '0 4px 24px #0003', position: 'relative' }}>
             <div style={{ fontWeight: 700, fontSize: 20, color: '#e53935', marginBottom: 18 }}>Report passenger noise</div>
             <div style={{ fontSize: 15, color: '#222', marginBottom: 18 }}>If there is passenger noise, bothering you, please report it to the train staff for handling.</div>
-            <textarea placeholder="Describe the incident, location, seat number, carriage..." style={{ width: '100%', minHeight: 80, borderRadius: 8, border: '1.5px solid #bbb', padding: 10, fontSize: 15, marginBottom: 18 }} />
+            <textarea placeholder="Describe the incident, location, seat number, carriage..." style={{ width: '100%', minHeight: 80, borderRadius: 8, border: '1.5px solid #bbb', padding: 10, fontSize: 15, marginBottom: 18, background: '#fff' }} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
               <button onClick={() => setShowReportModal(false)} style={{ background: '#eee', color: '#222', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 600, fontSize: 15, cursor: 'pointer' }}>Close</button>
               <button onClick={() => { setShowReportModal(false); alert('Your report has been sent to the train staff!'); }} style={{ background: '#e53935', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 18px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>Send report</button>

@@ -1471,15 +1471,29 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
             alignItems: 'center', 
             cursor: 'pointer',
             fontSize: 14
-          }}>
-            <input
-              type="radio"
-              name="noise"
-              value="quiet"
-              checked={noiseLevel === 'quiet'}
-              onChange={() => setNoiseLevel('quiet')}
-              style={{ marginRight: 8 }}
-            />
+          }}
+          onClick={() => setNoiseLevel('quiet')}
+          >
+            <div style={{ 
+              width: 16, 
+              height: 16, 
+              background: noiseLevel === 'quiet' ? '#4CAF50' : '#fff', 
+              border: '2px solid #4CAF50',
+              borderRadius: '50%',
+              marginRight: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {noiseLevel === 'quiet' && (
+                <div style={{ 
+                  width: 6, 
+                  height: 6, 
+                  background: '#fff', 
+                  borderRadius: '50%' 
+                }}></div>
+              )}
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ color: '#4CAF50', fontSize: 16 }}>●</span>
               <span>Quiet</span>
@@ -1491,17 +1505,31 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
             alignItems: 'center', 
             cursor: 'pointer',
             fontSize: 14
-          }}>
-            <input
-              type="radio"
-              name="noise"
-              value="noise"
-              checked={noiseLevel === 'noise'}
-              onChange={() => setNoiseLevel('noise')}
-              style={{ marginRight: 8 }}
-            />
+          }}
+          onClick={() => setNoiseLevel('noise')}
+          >
+            <div style={{ 
+              width: 16, 
+              height: 16, 
+              background: noiseLevel === 'noise' ? '#E91E63' : '#fff', 
+              border: '2px solid #E91E63',
+              borderRadius: '50%',
+              marginRight: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {noiseLevel === 'noise' && (
+                <div style={{ 
+                  width: 6, 
+                  height: 6, 
+                  background: '#fff', 
+                  borderRadius: '50%' 
+                }}></div>
+              )}
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: '#FF9800', fontSize: 16 }}>●</span>
+              <span style={{ color: '#E91E63', fontSize: 16 }}>●</span>
               <span>Noise</span>
             </div>
           </label>
@@ -1511,17 +1539,31 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
             alignItems: 'center', 
             cursor: 'pointer',
             fontSize: 14
-          }}>
-            <input
-              type="radio"
-              name="noise"
-              value="kidzone"
-              checked={noiseLevel === 'kidzone'}
-              onChange={() => setNoiseLevel('kidzone')}
-              style={{ marginRight: 8 }}
-            />
+          }}
+          onClick={() => setNoiseLevel('kidzone')}
+          >
+            <div style={{ 
+              width: 16, 
+              height: 16, 
+              background: noiseLevel === 'kidzone' ? '#FF9800' : '#fff', 
+              border: '2px solid #FF9800',
+              borderRadius: '50%',
+              marginRight: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {noiseLevel === 'kidzone' && (
+                <div style={{ 
+                  width: 6, 
+                  height: 6, 
+                  background: '#fff', 
+                  borderRadius: '50%' 
+                }}></div>
+              )}
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: '#E91E63', fontSize: 16 }}>●</span>
+              <span style={{ color: '#FF9800', fontSize: 16 }}>●</span>
               <span>Kidzone</span>
             </div>
           </label>
