@@ -106,6 +106,7 @@ const Main = () => {
     setSelectedFrom(station.station);
     setFromSearch(station.display);
     setShowFromSuggestions(false);
+    setShowDatePicker(false); // Đóng date picker nếu đang mở
     
     // Reset nơi đến nếu trùng với nơi xuất phát mới
     if (selectedTo === station.station) {
@@ -118,6 +119,7 @@ const Main = () => {
     setSelectedTo(station.station);
     setToSearch(station.display);
     setShowToSuggestions(false);
+    setShowDatePicker(false); // Đóng date picker nếu đang mở
     
     // Reset nơi xuất phát nếu trùng với nơi đến mới
     if (selectedFrom === station.station) {
@@ -144,6 +146,12 @@ const Main = () => {
       return diffDays;
     }
     return 0;
+  };
+
+  // Hàm hiển thị số ngày với đúng số ít/số nhiều
+  const getDaysText = () => {
+    const dayCount = getDaysCount();
+    return dayCount === 1 ? `${dayCount} day` : `${dayCount} days`;
   };
 
   // Hàm tạo lịch âm (giả lập)
@@ -268,6 +276,25 @@ const Main = () => {
     return () => clearInterval(interval);
   }, [hasETicket]);
 
+  // Xử lý click outside để đóng các dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Kiểm tra nếu click không phải vào các input field hoặc dropdown
+      if (!target.closest('[data-dropdown]') && 
+          !target.closest('input[type="text"]') &&
+          !target.closest('[data-datepicker]')) {
+        setShowFromSuggestions(false);
+        setShowToSuggestions(false);
+        setShowDatePicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Kiểm tra điều kiện tìm kiếm
   const canSearch = () => {
     // Kiểm tra nơi xuất phát và nơi đến
@@ -389,7 +416,7 @@ const Main = () => {
 
   return (
     <>
-      <div style={{ background: '#f7f7fa', minHeight: '100vh', width: '100vw', fontFamily: 'Montserrat, Arial, sans-serif', paddingBottom: 80 }}>
+      <div style={{ background: '#f7f7fa', minHeight: '100vh', width: '100vw', fontFamily: 'Montserrat, Arial, sans-serif', paddingBottom: 160 }}>
         {/* Header */}
       <div style={{ width: '100vw', background: '#1976d2', color: '#fff', padding: '14px 0 8px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 56 }}>
         <div style={{ display: 'flex', alignItems: 'center', marginLeft: 18 }}>
@@ -458,7 +485,7 @@ const Main = () => {
       {/* Card tìm kiếm */}
       <div style={{ background: '#fff', borderRadius: 18, boxShadow: '0 4px 16px #0002', margin: '18px auto 0 auto', width: '100%', maxWidth: 420, padding: '18px 16px 16px 16px', position: 'relative', zIndex: 1 }}>
         {/* Nơi xuất phát */}
-        <div style={{ position: 'relative', marginBottom: 10 }}>
+        <div style={{ position: 'relative', marginBottom: 10 }} data-dropdown="from">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ fontSize: 20, color: '#1976d2', marginRight: 10 }}>📍</span>
             <div style={{ flex: 1 }}>
@@ -470,8 +497,12 @@ const Main = () => {
                 onChange={(e) => {
                   setFromSearch(e.target.value);
                   setShowFromSuggestions(true);
+                  setShowToSuggestions(false); // Đóng dropdown destination khi mở departure
                 }}
-                onFocus={() => setShowFromSuggestions(true)}
+                onFocus={() => {
+                  setShowFromSuggestions(true);
+                  setShowToSuggestions(false); // Đóng dropdown destination khi focus departure
+                }}
                 style={{
                   width: '100%',
                   border: 'none',
@@ -523,7 +554,7 @@ const Main = () => {
               </div>
 
         {/* Nơi đến */}
-        <div style={{ position: 'relative', marginBottom: 10 }}>
+        <div style={{ position: 'relative', marginBottom: 10 }} data-dropdown="to">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ fontSize: 20, color: '#1976d2', marginRight: 10 }}>📍</span>
             <div style={{ flex: 1 }}>
@@ -535,8 +566,12 @@ const Main = () => {
                 onChange={(e) => {
                   setToSearch(e.target.value);
                   setShowToSuggestions(true);
+                  setShowFromSuggestions(false); // Đóng dropdown departure khi mở destination
                 }}
-                onFocus={() => setShowToSuggestions(true)}
+                onFocus={() => {
+                  setShowToSuggestions(true);
+                  setShowFromSuggestions(false); // Đóng dropdown departure khi focus destination
+                }}
                 style={{
                   width: '100%',
                   border: 'none',
@@ -588,7 +623,7 @@ const Main = () => {
         </div>
 
         {/* Ngày đi + khứ hồi */}
-        <div style={{ position: 'relative', marginBottom: 10 }}>
+        <div style={{ position: 'relative', marginBottom: 10 }} data-datepicker="true">
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ fontSize: 20, color: '#1976d2', marginRight: 10 }}>📅</span>
             <div style={{ flex: 1 }}>
@@ -601,13 +636,17 @@ const Main = () => {
                   cursor: 'pointer',
                   padding: '4px 0'
                 }}
-                onClick={() => setShowDatePicker(!showDatePicker)}
+                onClick={() => {
+                  setShowDatePicker(!showDatePicker);
+                  setShowFromSuggestions(false); // Đóng dropdown departure
+                  setShowToSuggestions(false); // Đóng dropdown destination
+                }}
               >
                 {departDate ? formatDate(departDate) : 'Select departure date'}
               </div>
               {returnDate && (
                 <div style={{ fontSize: 13, color: '#888', marginTop: 4 }}>
-                  Return: {formatDate(returnDate)} ({getDaysCount()} days)
+                  Return: {formatDate(returnDate)} ({getDaysText()})
                 </div>
               )}
             </div>
@@ -645,18 +684,36 @@ const Main = () => {
 
           {/* Date Picker Modal */}
           {showDatePicker && (
-            <div style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: '#fff',
-              borderRadius: 16,
-              boxShadow: '0 8px 32px #0003',
-              zIndex: 1000,
-              padding: '16px',
-              marginTop: 8
-            }}>
+            <>
+              {/* Overlay */}
+              <div 
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'rgba(0,0,0,0.5)',
+                  zIndex: 999
+                }}
+                onClick={() => setShowDatePicker(false)}
+              />
+              {/* Modal */}
+              <div style={{
+                position: 'fixed', // Đổi từ absolute sang fixed để tránh bị cắt
+                top: '50%', // Căn giữa theo chiều dọc
+                left: '50%', // Căn giữa theo chiều ngang
+                transform: 'translate(-50%, -50%)', // Căn giữa hoàn toàn
+                width: '90%', // Chiều rộng tương đối
+                maxWidth: '400px', // Giới hạn chiều rộng tối đa
+                maxHeight: '80vh', // Giới hạn chiều cao
+                background: '#fff',
+                borderRadius: 16,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                zIndex: 1000,
+                padding: '16px',
+                overflow: 'auto' // Cho phép scroll nếu cần
+              }}>
               {/* Header Calendar */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <button 
@@ -734,18 +791,28 @@ const Main = () => {
                 </div>
 
               {/* Footer */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f0f0' }}>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginTop: 16, 
+                paddingTop: 16, 
+                paddingBottom: 16, // Tăng padding bottom 
+                borderTop: '1px solid #f0f0f0',
+                gap: 12 // Thêm khoảng cách giữa các nút
+              }}>
                 <button
                   onClick={() => setShowDatePicker(false)}
                   style={{
                     background: '#f5f5f5',
                     border: 'none',
-                    padding: '8px 16px',
+                    padding: '12px 20px', // Tăng padding để nút lớn hơn
                     borderRadius: 8,
                     fontSize: 14,
                     fontWeight: 600,
                     color: '#666',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    minWidth: '80px' // Đảm bảo chiều rộng tối thiểu
                   }}
                 >
                   Cancel
@@ -755,22 +822,29 @@ const Main = () => {
                   style={{
                     background: '#1976d2',
                     border: 'none',
-                    padding: '8px 16px',
+                    padding: '12px 20px', // Tăng padding để nút lớn hơn
                     borderRadius: 8,
                     fontSize: 14,
                     fontWeight: 600,
                     color: '#fff',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    minWidth: '80px' // Đảm bảo chiều rộng tối thiểu
                   }}
                 >
                   Confirm
                 </button>
               </div>
             </div>
+            </>
           )}
         </div>
         {/* Hành khách */}
-        <div style={{ background: '#f7f7fa', borderRadius: 12, padding: '12px', marginBottom: 10, cursor: 'pointer' }} onClick={() => setShowPassengerModal(true)}>
+        <div style={{ background: '#f7f7fa', borderRadius: 12, padding: '12px', marginBottom: 10, cursor: 'pointer' }} onClick={() => {
+          setShowPassengerModal(true);
+          setShowFromSuggestions(false); // Đóng dropdown departure
+          setShowToSuggestions(false); // Đóng dropdown destination
+          setShowDatePicker(false); // Đóng date picker
+        }}>
           <div style={{ fontSize: 13, color: '#888', fontWeight: 500, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
             <img src={userIcon} alt="user" style={{ width: 20, height: 20, marginRight: 4 }} />
             Passengers
@@ -1047,9 +1121,19 @@ const Main = () => {
       {showPassengerModal && (
         <div style={{
           position: 'fixed', left: 0, right: 0, bottom: 0, top: 0, zIndex: 10000,
-          background: 'rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', transition: 'all 0.3s'
+          background: 'rgba(0,0,0,0.25)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'all 0.3s', padding: '20px'
         }}>
-          <div style={{ background: '#fff', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 20, minHeight: 420, maxWidth: 480, margin: '0 auto', width: '100%', boxShadow: '0 -2px 16px #0002', animation: 'slideUp .3s' }}>
+          <div style={{ 
+            background: '#fff', 
+            borderRadius: 18, 
+            padding: 20, 
+            maxWidth: 480, 
+            width: '100%', 
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)', 
+            animation: 'slideUp .3s'
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <span style={{ fontWeight: 700, fontSize: 18 }}>Passengers</span>
               <span style={{ color: '#1976d2', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} onClick={() => setShowPassengerModal(false)}>Close</span>
@@ -1061,18 +1145,37 @@ const Main = () => {
             {/* Danh sách loại hành khách */}
             {[
               { key: 'adult', label: 'Adult', desc: 'Traveling from departure date, aged 10-59', color: '#222', badge: '', icon: adultIcon },
-              { key: 'child', label: 'Child', desc: 'Traveling from departure date, aged 0-10, applies to Vietnamese citizens', color: '#388e3c', badge: 'DISCOUNT 25%', icon: childIcon },
-              { key: 'elderly', label: 'Elderly', desc: 'Traveling from departure date, aged 60 and above, applies to Vietnamese citizens', color: '#1976d2', badge: 'DISCOUNT 15%', icon: elderlyIcon },
-              { key: 'student', label: 'Student', desc: 'Applies to Vietnamese citizens with a Student ID when traveling by train', color: '#0288d1', badge: 'DISCOUNT 10%', icon: studentIcon },
-              { key: 'union', label: 'Union Member', desc: 'Applies to Vietnamese citizens with a valid Union ID when traveling by train', color: '#fbc02d', badge: 'DISCOUNT 5%', icon: unionIcon },
+              { key: 'child', label: 'Child', desc: 'Traveling from departure date, aged 0-10, applies to Vietnamese citizens', color: '#222', badge: 'DISCOUNT 25%', icon: childIcon },
+              { key: 'elderly', label: 'Elderly', desc: 'Traveling from departure date, aged 60 and above, applies to Vietnamese citizens', color: '#222', badge: 'DISCOUNT 15%', icon: elderlyIcon },
+              { key: 'student', label: 'Student', desc: 'Applies to Vietnamese citizens with a Student ID when traveling by train', color: '#222', badge: 'DISCOUNT 10%', icon: studentIcon },
+              { key: 'union', label: 'Union Member', desc: 'Applies to Vietnamese citizens with a valid Union ID when traveling by train', color: '#222', badge: 'DISCOUNT 5%', icon: unionIcon },
               { key: 'expectant_nursing_mother', label: 'Expectant / Nursing Mother', desc: 'Nursing Mother: women breastfeeding or caring for infants under 1 year old. Infants share bed and do not need tickets. Expectant: pregnant women. For privacy or additional companion, book another ticket.', color: '#e91e63', badge: 'SPECIAL CARE', icon: nursingMotherIcon },
             ].map((item) => (
-              <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', borderRadius: 8, padding: '10px 0 10px 0', marginBottom: 8, boxShadow: '0 1px 4px #0001' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <img src={item.icon} alt={item.label} style={{ width: 32, height: 32 }} />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: item.color, display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-                      {item.label}
+              <div key={item.key} style={{ 
+                display: 'flex', 
+                alignItems: 'flex-start', 
+                justifyContent: 'space-between', 
+                background: '#fff', 
+                borderRadius: 8, 
+                padding: '12px 8px', 
+                marginBottom: 8, 
+                boxShadow: '0 1px 4px #0001',
+                minHeight: 'auto'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: 1, paddingRight: 12 }}>
+                  <img src={item.icon} alt={item.label} style={{ width: 32, height: 32, flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ 
+                      fontWeight: 700, 
+                      fontSize: 16, 
+                      color: item.color, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 8, 
+                      marginBottom: 4,
+                      flexWrap: 'wrap'
+                    }}>
+                      <span>{item.label}</span>
                       {item.badge && (
                         <span
                           style={
@@ -1084,7 +1187,6 @@ const Main = () => {
                                   fontSize: 12,
                                   borderRadius: 6,
                                   padding: '2px 8px',
-                                  marginLeft: 4,
                                   whiteSpace: 'nowrap',
                                   display: 'inline-block',
                                 }
@@ -1095,7 +1197,6 @@ const Main = () => {
                                   fontSize: 12,
                                   borderRadius: 6,
                                   padding: '2px 8px',
-                                  marginLeft: 4,
                                   whiteSpace: 'nowrap',
                                   display: 'inline-block',
                                 }
@@ -1105,10 +1206,18 @@ const Main = () => {
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{item.desc}</div>
+                    <div style={{ 
+                      fontSize: 13, 
+                      color: '#888', 
+                      lineHeight: '1.4',
+                      wordWrap: 'break-word',
+                      overflowWrap: 'break-word'
+                    }}>
+                      {item.desc}
+                    </div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                   <button onClick={() => setPassenger(p => ({ ...p, [item.key as PassengerType]: Math.max(0, p[item.key as PassengerType] - 1) }))} style={{ width: 32, height: 32, borderRadius: 16, border: '1px solid #ddd', background: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>-</button>
                   <span style={{ fontWeight: 700, fontSize: 18, color: '#222', minWidth: 20, textAlign: 'center' }}>{passenger[item.key as PassengerType]}</span>
                   <button onClick={() => setPassenger(p => ({ ...p, [item.key as PassengerType]: p[item.key as PassengerType] + 1 }))} style={{ width: 32, height: 32, borderRadius: 16, border: '1px solid #ddd', background: '#fff', fontSize: 20, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>+</button>

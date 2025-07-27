@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { SEAT_CATEGORIES } from '../constants';
 
-interface Seat {
+interface LocalSeat {
   id: string;
   price: number;
   status: 'available' | 'occupied' | 'reserved' | 'selected';
-  behavior?: 'quiet' | 'social';
+  behavior?: 'quiet' | 'social' | 'kidzone';
+  row?: string;
+  column?: number;
+  floor?: number;
+  nearWC?: boolean;
+  nearSimilarBehavior?: boolean;
+  coachId?: number;
+}
+
+interface Coach {
+  id: number;
+  type: string;
+  seats: number;
+  price: number;
 }
 
 interface PriceFilterProps {
@@ -13,7 +26,7 @@ interface PriceFilterProps {
   maxPrice: number;
   onPriceChange: (min: number, max: number) => void;
   priceData?: number[];
-  seats?: Seat[];
+  seats?: LocalSeat[];
   className?: string;
   onApplyFilter?: (filters: any) => void;
   // External state props for synchronization
@@ -21,12 +34,22 @@ interface PriceFilterProps {
   priorityPreference?: string;
   onRecordTypesChange?: (types: string[]) => void;
   onPriorityChange?: (priority: 'all' | 'high_only') => void;
+  // Reset callback to clear filtered results (like SearchResults page)
+  onResetFilters?: () => void;
+  // New props for integrated filtering
+  coachSeats?: Record<number, LocalSeat[]>;
+  coaches?: Coach[];
+  selectedCoachIdx?: number;
+  onFilteredSeatsChange?: (seatIds: string[]) => void;
+  onBestCoachSwitch?: (coachIndex: number) => void;
+  onShowToast?: (message: string, color: string) => void;
 }
 
 interface RecordTypes {
   standard: boolean;
   medium_priority: boolean;
   high_priority: boolean;
+  two_berth: boolean;
 }
 
 const PriceFilter: React.FC<PriceFilterProps> = ({
@@ -40,7 +63,14 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
   selectedRecordTypes: externalRecordTypes,
   priorityPreference: externalPriorityPreference,
   onRecordTypesChange,
-  onPriorityChange
+  onPriorityChange,
+  onResetFilters,
+  coachSeats = {},
+  coaches = [],
+  selectedCoachIdx = 0,
+  onFilteredSeatsChange,
+  onBestCoachSwitch,
+  onShowToast
 }) => {
   // State cho price range filter và histogram
   const [filterMinPrice, setFilterMinPrice] = useState(minPrice);
@@ -49,15 +79,19 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
   const [rightHandle, setRightHandle] = useState(100);
   const [isDragging, setIsDragging] = useState<string | null>(null);
 
-  // Record Type filters (theo Salesforce style)
+  // Record Type filters (theo Salesforce style) - Default to none selected
   const [recordTypes, setRecordTypes] = useState<RecordTypes>({
-    standard: true,
-    medium_priority: true,
-    high_priority: false
+    standard: false,
+    medium_priority: false,
+    high_priority: false,
+    two_berth: false
   });
 
   // Priority Preferences
   const [priorityPreference, setPriorityPreference] = useState('all');
+  
+  // Noise Level filter
+  const [noiseLevel, setNoiseLevel] = useState<'quiet' | 'noise' | 'kidzone' | null>(null);
 
   // Use external state if provided, otherwise use internal state
   const currentPriorityPreference = externalPriorityPreference || priorityPreference;
@@ -168,8 +202,8 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
     setIsDragging(null);
   };
 
-  // Hàm tạo histogram cho giá vé với thông tin ghế chi tiết
-  const getPriceHistogram = (binCount: number = 18) => {
+  // Hàm tạo histogram cho giá vé với thông tin ghế chi tiết - Enhanced design
+  const getPriceHistogram = (binCount: number = 12) => {
     // Nếu có dữ liệu seats thực tế, sử dụng chúng
     if (seats && seats.length > 0) {
       const bins = new Array(binCount).fill(0);
@@ -203,28 +237,33 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
       return bins;
     }
 
-    // Mock data với mật độ ghế thực tế theo giá - phân bố cong tự nhiên
-    // Giá thấp: ít ghế, giá trung bình: nhiều ghế, giá cao: ít ghế
-    const mockData = [
-      3,   // 595-630k: Ngồi cứng
-      5,   // 630-665k: Ngồi cứng  
-      8,   // 665-700k: Ngồi mềm
-      15,  // 700-735k: Ngồi mềm
-      22,  // 735-770k: Ngồi mềm
-      28,  // 770-805k: Giường nằm cứng
-      32,  // 805-840k: Giường nằm cứng
-      35,  // 840-875k: Giường nằm cứng (cao nhất)
-      30,  // 875-910k: Giường nằm mềm
-      25,  // 910-945k: Giường nằm mềm
-      20,  // 945-980k: Giường nằm mềm
-      15,  // 980-1015k: VIP
-      10,  // 1015-1050k: VIP
-      8,   // 1050-1085k: VIP
-      5,   // 1085-1120k: VIP
-      3,   // 1120-1155k: VIP
-      2,   // 1155-1190k: VIP
-      1    // 1190-1225k: VIP
-    ].slice(0, binCount);
+    // Enhanced mock data với phân bố đều và đầy đặn - No empty spaces
+    // Tạo dữ liệu đều đặn với chiều cao tương đối ổn định
+    const mockData: number[] = [];
+    
+    // Predefined values để đảm bảo đều đặn và không có khoảng trống
+    const predefinedHeights = [
+      25, 32, 28, 35, 42, 38, 45, 40, 36, 33, 29, 26
+    ];
+    
+    for (let i = 0; i < binCount; i++) {
+      // Sử dụng predefined heights hoặc tính toán nếu binCount khác 12
+      let height;
+      if (i < predefinedHeights.length) {
+        height = predefinedHeights[i];
+      } else {
+        // Fallback calculation for different binCount
+        const baseHeight = 28;
+        const variation = Math.sin((i / binCount) * Math.PI * 2) * 8;
+        height = baseHeight + Math.abs(variation) + (Math.random() * 6);
+      }
+      
+      // Add small randomness but ensure minimum height
+      const randomVariation = (Math.random() - 0.5) * 4; // ±2 variation
+      const finalHeight = Math.round(height + randomVariation);
+      
+      mockData.push(Math.max(22, finalHeight)); // Minimum 22 seats per bin
+    }
     
     return mockData;
   };
@@ -280,20 +319,50 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
     ? {
         standard: externalRecordTypes.includes('standard'),
         medium_priority: externalRecordTypes.includes('medium_priority'), 
-        high_priority: externalRecordTypes.includes('high_priority')
+        high_priority: externalRecordTypes.includes('high_priority'),
+        two_berth: externalRecordTypes.includes('two_berth')
       }
     : recordTypes;
 
-  // Apply Record Filter
+  // Apply Record Filter - Updated to use integrated logic
   const applyRecordFilter = () => {
+    console.log('🚀 ===== STARTING RECORD FILTER =====');
+    console.log('Available filter data:', {
+      coachSeats: Object.keys(coachSeats).length,
+      coaches: coaches.length,
+      selectedCoachIdx,
+      onFilteredSeatsChange: !!onFilteredSeatsChange
+    });
+    
+    // If we have integrated filtering capability, use it
+    if (coachSeats && Object.keys(coachSeats).length > 0 && onFilteredSeatsChange) {
+      console.log('🎯 Using integrated filter logic');
+      applyIntegratedFilters();
+      return;
+    }
+
+    // Fallback to original logic for backward compatibility
     const activeFilters = Object.entries(currentRecordTypes)
       .filter(([_, isActive]) => isActive)
       .map(([type]) => type);
     
+    console.log('🔍 Active filters (fallback mode):', activeFilters);
+    
+    // If no record types selected, show message
+    if (activeFilters.length === 0) {
+      if (onShowToast) {
+        onShowToast('Vui lòng chọn ít nhất một loại ghế để lọc kết quả', 'warning');
+      } else {
+        alert('Vui lòng chọn ít nhất một loại ghế để lọc kết quả');
+      }
+      return;
+    }
+    
     const filterData = {
       priceRange: { min: filterMinPrice, max: filterMaxPrice },
       recordTypes: activeFilters,
-      priority: currentPriorityPreference
+      priority: currentPriorityPreference,
+      noiseLevel: noiseLevel
     };
     
     console.log('Applied filters:', filterData);
@@ -303,9 +372,577 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
       onApplyFilter(filterData);
     } else {
       // Fallback alert if no callback provided
-      alert(`Filters applied!\nPrice: đ${filterMinPrice.toLocaleString('vi-VN')} - đ${filterMaxPrice.toLocaleString('vi-VN')}\nRecord Types: ${activeFilters.join(', ')}\nPriority: ${currentPriorityPreference}`);
+      const noiseLevelText = noiseLevel ? ` | Noise Level: ${noiseLevel}` : '';
+      alert(`Filters applied!\nPrice: đ${filterMinPrice.toLocaleString('vi-VN')} - đ${filterMaxPrice.toLocaleString('vi-VN')}\nRecord Types: ${activeFilters.join(', ')}\nPriority: ${currentPriorityPreference}${noiseLevelText}`);
     }
   };
+
+  // Reset all filters - Updated to handle integrated logic
+  const resetFilters = () => {
+    // Reset price range to original values
+    setFilterMinPrice(minPrice);
+    setFilterMaxPrice(maxPrice);
+    onPriceChange(minPrice, maxPrice);
+    
+    // Reset record types to default (none selected)
+    const defaultRecordTypes: string[] = [];
+    if (onRecordTypesChange) {
+      onRecordTypesChange(defaultRecordTypes);
+    } else {
+      setRecordTypes({
+        standard: false,
+        medium_priority: false,
+        high_priority: false,
+        two_berth: false
+      });
+    }
+    
+    // Reset priority preference (keep as 'all' since no UI to change it)
+    setPriorityPreference('all');
+    if (onPriorityChange) {
+      onPriorityChange('all');
+    }
+    
+    // Reset noise level
+    setNoiseLevel(null);
+    
+    console.log('🔄 All filters have been reset to default state (none selected)');
+    
+    // Clear filtered results if we have integrated filtering
+    if (onFilteredSeatsChange) {
+      onFilteredSeatsChange([]);
+    }
+    
+    // Call the reset callback to clear filtered results (like SearchResults)
+    if (onResetFilters) {
+      onResetFilters();
+    } else {
+      // Fallback: auto-apply reset filters if no reset callback provided
+      if (onApplyFilter) {
+        onApplyFilter({
+          priceRange: { min: minPrice, max: maxPrice },
+          recordTypes: defaultRecordTypes,
+          priority: 'all',
+          noiseLevel: null
+        });
+      }
+    }
+  };
+
+  // ======================== INTEGRATED FILTER LOGIC ========================
+  
+  // Hàm đánh giá mức độ noise từ màu sắc RGB
+  const getNoiseScoreFromColor = (colorString: string): number => {
+    // Parse RGB color string
+    if (!colorString || colorString === "#e0e0e0") return 50; // Neutral score for default colors
+    
+    let r, g, b;
+    
+    if (colorString.startsWith('rgb')) {
+      // Parse rgb(r, g, b) format
+      const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (match) {
+        r = parseInt(match[1]);
+        g = parseInt(match[2]);
+        b = parseInt(match[3]);
+      } else {
+        return 50; // Default neutral score
+      }
+    } else if (colorString.startsWith('#')) {
+      // Parse hex format
+      const hex = colorString.replace('#', '');
+      r = parseInt(hex.substr(0, 2), 16);
+      g = parseInt(hex.substr(2, 2), 16);
+      b = parseInt(hex.substr(4, 2), 16);
+    } else {
+      return 50; // Default neutral score
+    }
+    
+    // Calculate noise score based on color knowledge:
+    // Đỏ cam (249, 115, 22) = noise/social = high score (80-100)
+    // Xanh lá (34, 197, 94) = quiet = low score (0-20)
+    
+    // Method 1: Calculate similarity to red vs green
+    const redReference = { r: 249, g: 115, b: 22 }; // Orange-red (noise)
+    const greenReference = { r: 34, g: 197, b: 94 }; // Green (quiet)
+    
+    // Calculate Euclidean distance to each reference color
+    const distanceToRed = Math.sqrt(
+      Math.pow(r - redReference.r, 2) + 
+      Math.pow(g - redReference.g, 2) + 
+      Math.pow(b - redReference.b, 2)
+    );
+    
+    const distanceToGreen = Math.sqrt(
+      Math.pow(r - greenReference.r, 2) + 
+      Math.pow(g - greenReference.g, 2) + 
+      Math.pow(b - greenReference.b, 2)
+    );
+    
+    // Normalize distances and calculate score
+    const totalDistance = distanceToRed + distanceToGreen;
+    if (totalDistance === 0) return 50; // Avoid division by zero
+    
+    // Closer to red = higher noise score, closer to green = lower noise score
+    const noiseScore = (distanceToGreen / totalDistance) * 100;
+    
+    console.log(`🎨 Color analysis for ${colorString}: RGB(${r},${g},${b}) -> Noise Score: ${noiseScore.toFixed(1)}`);
+    return noiseScore;
+  };
+
+  // Hàm xác định behavior từ màu sắc (để bổ sung cho behavior hiện tại)
+  const getBehaviorFromColorAnalysis = (colorString: string): 'quiet' | 'social' | 'kidzone' | 'unknown' => {
+    const noiseScore = getNoiseScoreFromColor(colorString);
+    
+    // Special colors for kidzone
+    if (colorString === "#E91E63" || colorString === "#9C27B0") {
+      return 'kidzone';
+    }
+    
+    // Threshold-based classification
+    if (noiseScore >= 70) {
+      return 'social'; // High noise = social/noise behavior
+    } else if (noiseScore <= 30) {
+      return 'quiet';  // Low noise = quiet behavior
+    } else {
+      return 'unknown'; // Medium range - ambiguous
+    }
+  };
+  
+  // Record Type Configuration (updated based on user specification)
+  const recordTypeConfig = {
+    standard: {
+      label: 'Ghế ngồi',
+      description: 'Ghế ngồi thường (toa 1, 2)',
+      criteria: {
+        seatTypes: ['seat'],
+        noiseLevel: ['quiet', 'social'],
+        coachPosition: [1, 2], // Toa 1-2: Ghế ngồi
+        priorityScore: 1
+      }
+    },
+    medium_priority: {
+      label: '6 giường 1 cabin',
+      description: 'Cabin ngủ 6 giường (toa 5, 6, 7)',
+      criteria: {
+        seatTypes: ['compartment_6'],
+        noiseLevel: ['quiet', 'social', 'kidzone'],
+        coachPosition: [5, 6, 7], // Toa 5,6,7: 6 giường 1 cabin
+        priorityScore: 2
+      }
+    },
+    high_priority: {
+      label: '4 giường 1 cabin',
+      description: 'Cabin ngủ 4 giường (toa 4, 8, 9, 10)',
+      criteria: {
+        seatTypes: ['compartment_4'],
+        noiseLevel: ['quiet', 'social', 'kidzone'], // Toa 4 cũng hỗ trợ kidzone
+        coachPosition: [4, 8, 9, 10], // Toa 4,8,9,10: 4 giường 1 cabin
+        priorityScore: 3
+      }
+    },
+    two_berth: {
+      label: '2 giường 1 cabin',
+      description: 'Cabin ngủ 2 giường (toa 3)',
+      criteria: {
+        seatTypes: ['compartment_2'],
+        noiseLevel: ['quiet', 'social', 'kidzone'], // Toa 3 hỗ trợ kidzone
+        coachPosition: [3], // Toa 3: 2 giường 1 cabin
+        priorityScore: 4
+      }
+    }
+  };
+
+  // Salesforce-style priority scoring function
+  const getPriorityScore = (seat: LocalSeat): number => {
+    let score = 0;
+    
+    // Noise level scoring (decreases by coach position)
+    const coachId = seat.coachId || (coaches[selectedCoachIdx]?.id);
+    if (seat.behavior === 'quiet') {
+      score += Math.max(0, 11 - (coachId || 0)); // Decreasing noise by coach position
+    } else if (seat.behavior === 'social') {
+      score += Math.max(0, (coachId || 0) - 1); // Increasing noise by coach position
+    } else if (seat.behavior === 'kidzone') {
+      score += 15; // Special scoring for kidzone (family-friendly areas)
+    }
+    
+    // Seat type scoring
+    if (seat.id.includes('-k2-')) score += 35; // 2-berth cabin (highest priority)
+    else if (seat.id.includes('-k4-')) score += 30; // 4-berth cabin (high priority)
+    else if (seat.id.includes('-k6-')) score += 20; // 6-berth cabin (medium priority)
+    else if (seat.id.includes('-ngoi-')) score += 10; // Seat (standard priority)
+    
+    // Comfort factors
+    if (!seat.nearWC) score += 5; // Bonus for not being near toilet
+    if (seat.nearSimilarBehavior) score += 3; // Bonus for being near similar behavior passengers
+    
+    return score;
+  };
+
+  // Function to check if seat matches Record Type criteria
+  const matchesRecordTypeCriteria = (seat: LocalSeat, recordType: string, coachId: number): boolean => {
+    const config = recordTypeConfig[recordType as keyof typeof recordTypeConfig];
+    if (!config) {
+      console.log(`⚠️ No config found for record type: ${recordType}`);
+      return false;
+    }
+    
+    console.log(`🔍 Checking seat ${seat.id} against ${recordType} for coach ${coachId}`);
+    
+    // Check coach position criteria
+    if (!config.criteria.coachPosition.includes(coachId)) {
+      console.log(`❌ Coach ${coachId} not in allowed positions:`, config.criteria.coachPosition);
+      return false;
+    }
+    console.log(`✅ Coach ${coachId} matches position criteria`);
+    
+    // Determine actual seat type from multiple sources
+    let actualSeatType = '';
+    
+    // Method 1: Check seat ID patterns
+    if (seat.id.includes('-ngoi-') || seat.id.includes('ngoi')) {
+      actualSeatType = 'seat';
+    } else if (seat.id.includes('-k2-') || seat.id.includes('k2')) {
+      actualSeatType = 'compartment_2';
+    } else if (seat.id.includes('-k4-') || seat.id.includes('k4')) {
+      actualSeatType = 'compartment_4';
+    } else if (seat.id.includes('-k6-') || seat.id.includes('k6')) {
+      actualSeatType = 'compartment_6';
+    }
+    
+    // Method 2: If ID pattern fails, determine by coach position (more reliable)
+    if (!actualSeatType) {
+      if (coachId === 1 || coachId === 2) {
+        actualSeatType = 'seat'; // Toa 1-2: Ghế ngồi
+      } else if (coachId === 3) {
+        actualSeatType = 'compartment_2'; // Toa 3: 2 giường 1 cabin
+      } else if (coachId === 4 || coachId === 8 || coachId === 9 || coachId === 10) {
+        actualSeatType = 'compartment_4'; // Toa 4,8,9,10: 4 giường 1 cabin
+      } else if (coachId === 5 || coachId === 6 || coachId === 7) {
+        actualSeatType = 'compartment_6'; // Toa 5,6,7: 6 giường 1 cabin
+      }
+    }
+    
+    console.log(`🪑 Seat ${seat.id} determined type: ${actualSeatType} (Coach ${coachId})`);
+    console.log(`📋 Record type ${recordType} allows:`, config.criteria.seatTypes);
+    
+    // Check if actual seat type is in the allowed types for this record type
+    const seatTypeMatches = config.criteria.seatTypes.includes(actualSeatType);
+    
+    if (!seatTypeMatches) {
+      console.log(`❌ Seat type ${actualSeatType} not allowed for ${recordType}`);
+      return false;
+    }
+    console.log(`✅ Seat type ${actualSeatType} matches criteria`);
+    
+    // Check noise level criteria (if noise level filter is applied)
+    if (noiseLevel) {
+      const mappedNoiseLevel = noiseLevel === 'noise' ? 'social' : noiseLevel;
+      console.log(`🔊 Checking noise level: ${mappedNoiseLevel} against allowed:`, config.criteria.noiseLevel);
+      if (!config.criteria.noiseLevel.includes(mappedNoiseLevel)) {
+        console.log(`❌ Noise level ${mappedNoiseLevel} not allowed for ${recordType}`);
+        return false;
+      }
+      console.log(`✅ Noise level ${mappedNoiseLevel} matches criteria`);
+    } else {
+      console.log(`🔇 No noise level filter applied, skipping noise level check`);
+    }
+    
+    console.log(`🎉 Seat ${seat.id} PASSES all criteria for ${recordType}`);
+    return true;
+  };
+
+  // Salesforce-style Record Type filtering
+  const filterRecordsByType = (seats: LocalSeat[], coachId: number): LocalSeat[] => {
+    const selectedTypes = externalRecordTypes || Object.entries(currentRecordTypes)
+      .filter(([_, isActive]) => isActive)
+      .map(([type]) => type);
+
+    console.log('🏷️ Starting Record Type filtering...');
+    console.log('Selected Record Types:', selectedTypes);
+    console.log('Total seats to filter:', seats.length);
+    
+    if (selectedTypes.length === 0) {
+      console.log('⚠️ No record types selected, returning empty array (user must select at least one type)');
+      return [];
+    }
+    
+    const filtered = seats.filter(seat => {
+      console.log(`\n--- Checking seat ${seat.id} ---`);
+      
+      const matchesAnyType = selectedTypes.some(recordType => {
+        console.log(`Testing against ${recordType}...`);
+        const matches = matchesRecordTypeCriteria(seat, recordType, coachId);
+        console.log(`Result for ${recordType}:`, matches ? '✅ MATCH' : '❌ NO MATCH');
+        return matches;
+      });
+      
+      console.log(`Final result for seat ${seat.id}:`, matchesAnyType ? '🎯 INCLUDED' : '🚫 EXCLUDED');
+      return matchesAnyType;
+    });
+    
+    console.log(`\n📊 Record Type filtering results: ${filtered.length}/${seats.length} seats passed`);
+    return filtered;
+  };
+
+  // Salesforce-style Priority Preference filtering
+  const filterRecordsByPriority = (seats: LocalSeat[]): LocalSeat[] => {
+    const currentPriority = externalPriorityPreference || priorityPreference;
+    
+    console.log('🎯 Starting Priority Preference filtering...');
+    console.log('Priority Preference:', currentPriority);
+    console.log('Input seats:', seats.length);
+    
+    if (currentPriority === 'all') {
+      console.log('✅ Priority = "all", returning all seats');
+      return seats;
+    }
+    
+    if (currentPriority === 'high_only' || currentPriority === 'highPriority') {
+      // Only show high priority seats (score >= threshold)
+      const threshold = 25; // Adjustable threshold
+      console.log(`🔍 Filtering for high priority only (score >= ${threshold})`);
+      
+      const filtered = seats.filter(seat => {
+        const score = getPriorityScore(seat);
+        const passes = score >= threshold;
+        console.log(`Seat ${seat.id}: score=${score}, passes=${passes}`);
+        return passes;
+      });
+      
+      console.log(`📊 Priority filtering results: ${filtered.length}/${seats.length} seats are high priority`);
+      return filtered;
+    }
+    
+    if (currentPriority === 'lowPriority') {
+      // Only show low priority seats (score < threshold)
+      const threshold = 15;
+      console.log(`🔍 Filtering for low priority only (score < ${threshold})`);
+      
+      const filtered = seats.filter(seat => {
+        const score = getPriorityScore(seat);
+        const passes = score < threshold;
+        console.log(`Seat ${seat.id}: score=${score}, passes=${passes}`);
+        return passes;
+      });
+      
+      console.log(`📊 Priority filtering results: ${filtered.length}/${seats.length} seats are low priority`);
+      return filtered;
+    }
+    
+    console.log('⚠️ Unknown priority preference, returning all seats');
+    return seats;
+  };
+
+  // Main filter application function
+  const applyIntegratedFilters = () => {
+    if (!coachSeats || Object.keys(coachSeats).length === 0) {
+      console.log('⚠️ No coach seats data available for filtering');
+      return;
+    }
+
+    console.log('\n🚀 ===== STARTING INTEGRATED SALESFORCE-STYLE FILTERING =====');
+    console.log('Filter parameters:', {
+      selectedRecordTypes: externalRecordTypes || Object.entries(currentRecordTypes).filter(([_, isActive]) => isActive).map(([type]) => type),
+      priorityPreference: externalPriorityPreference || priorityPreference,
+      priceRange: [filterMinPrice, filterMaxPrice],
+      noiseLevel
+    });
+    console.log('Coach seats available:', Object.keys(coachSeats).map(id => `Coach ${id}: ${coachSeats[Number(id)]?.length || 0} seats`));
+
+    const allFilteredSeats: LocalSeat[] = [];
+    let bestCoachInfo: { id: number | null; seats: LocalSeat[]; seatCount: number; avgScore: number } = { 
+      id: null, seats: [], seatCount: 0, avgScore: 0 
+    };
+
+    // Lặp qua TẤT CẢ các toa để tìm ghế tốt nhất
+    Object.keys(coachSeats).forEach(coachIdStr => {
+      const coachId = Number(coachIdStr);
+      const currentCoachSeats = coachSeats[coachId] || [];
+      
+      if (currentCoachSeats.length === 0) return;
+
+      // Special logic for noise level filtering: only check relevant coaches for kidzone
+      if (noiseLevel === 'kidzone' && ![3, 4, 5].includes(coachId)) {
+        console.log(`⏭️ Skipping Coach ${coachId} - kidzone filter only applies to coaches 3, 4, 5`);
+        return;
+      }
+      
+      // For quiet and noise filters, check all coaches that contain seats with those behaviors
+      // This allows filtering by seat color/behavior across all coaches
+      
+      console.log(`\n📍 Checking Coach ${coachId} with ${currentCoachSeats.length} total seats`);
+      
+      // Pre-filter check: For quiet/noise filters, check if this coach has any seats with the desired behavior
+      if (noiseLevel === 'quiet' || noiseLevel === 'noise') {
+        const targetBehavior = noiseLevel === 'quiet' ? 'quiet' : 'social';
+        const hasTargetBehavior = currentCoachSeats.some(seat => seat.behavior === targetBehavior);
+        
+        if (!hasTargetBehavior) {
+          console.log(`⏭️ Skipping Coach ${coachId} - no seats with '${targetBehavior}' behavior found`);
+          return;
+        }
+        console.log(`✅ Coach ${coachId} has seats with '${targetBehavior}' behavior, proceeding with filtering`);
+      }
+      
+      // Step 1: Apply Record Type filtering
+      console.log(`\n📋 STEP 1: Record Type Filtering for Coach ${coachId}`);
+      let filtered = filterRecordsByType(currentCoachSeats, coachId);
+      console.log(`After Record Type filtering: ${filtered.length} seats remain in Coach ${coachId}`);
+      
+      if (filtered.length === 0) return;
+      
+      // Step 2: Apply Priority Preference filtering
+      console.log(`\n🎯 STEP 2: Priority Preference Filtering for Coach ${coachId}`);
+      filtered = filterRecordsByPriority(filtered);
+      console.log(`After Priority filtering: ${filtered.length} seats remain in Coach ${coachId}`);
+      
+      if (filtered.length === 0) return;
+      
+      // Step 3: Apply price range filtering
+      console.log(`\n💰 STEP 3: Price Range Filtering for Coach ${coachId}`);
+      const beforePriceCount = filtered.length;
+      filtered = filtered.filter(seat => {
+        const inRange = seat.price >= filterMinPrice && seat.price <= filterMaxPrice;
+        return inRange;
+      });
+      console.log(`After Price filtering: ${filtered.length}/${beforePriceCount} seats remain in Coach ${coachId}`);
+      
+      if (filtered.length === 0) return;
+      
+      // Step 4: Apply noise level filtering (if specified)
+      if (noiseLevel) {
+        console.log(`\n🔊 STEP 4: Noise Level Filtering for Coach ${coachId} (Looking for: ${noiseLevel})`);
+        const beforeNoiseCount = filtered.length;
+        
+        // Log seat behaviors in this coach
+        console.log(`Coach ${coachId} seat behaviors:`, filtered.map(seat => `${seat.id}: ${seat.behavior}`));
+        
+        // Enhanced logic: Filter by seat behavior with color knowledge validation
+        filtered = filtered.filter(seat => {
+          // Primary filter: Check existing behavior
+          let behaviorMatch = false;
+          if (noiseLevel === 'quiet') {
+            behaviorMatch = seat.behavior === 'quiet';
+          } else if (noiseLevel === 'noise') {
+            behaviorMatch = seat.behavior === 'social';
+          } else if (noiseLevel === 'kidzone') {
+            behaviorMatch = seat.behavior === 'kidzone';
+            console.log(`Checking seat ${seat.id} in coach ${coachId}: behavior=${seat.behavior}, isKidzone=${behaviorMatch}`);
+          }
+          
+          // Enhanced validation: Use color knowledge to understand seat positioning
+          // Màu đỏ = noise/social behavior, Màu xanh = quiet behavior
+          if (behaviorMatch) {
+            console.log(`✅ Seat ${seat.id} matched by behavior: ${seat.behavior} (Color Rule: Red=Noise, Green=Quiet)`);
+          }
+          
+          return behaviorMatch;
+        });
+        console.log(`After Noise Level filtering: ${filtered.length}/${beforeNoiseCount} seats remain in Coach ${coachId}`);
+        
+        // Enhanced explanation with color knowledge
+        if ((noiseLevel === 'quiet' || noiseLevel === 'noise') && filtered.length === 0 && beforeNoiseCount > 0) {
+          const targetBehavior = noiseLevel === 'quiet' ? 'quiet' : 'social';
+          const colorDescription = noiseLevel === 'quiet' ? 'Green colored seats (quiet zones)' : 'Red colored seats (noise zones)';
+          console.log(`❌ Coach ${coachId} has no seats with '${targetBehavior}' behavior. Looking for: ${colorDescription}`);
+        }
+      }
+      
+      // Step 5: Only show available seats
+      console.log(`\n✅ STEP 5: Availability Filtering for Coach ${coachId}`);
+      const beforeAvailabilityCount = filtered.length;
+      filtered = filtered.filter(seat => {
+        const isAvailable = seat.status === 'available';
+        if (!isAvailable) {
+          console.log(`Seat ${seat.id}: status is ${seat.status}, not available`);
+        }
+        return isAvailable;
+      });
+      console.log(`After Availability filtering: ${filtered.length}/${beforeAvailabilityCount} seats remain in Coach ${coachId}`);
+      
+      if (filtered.length === 0) return;
+      
+      // Sort by priority score (highest first)
+      console.log(`\n📊 STEP 6: Priority Sorting for Coach ${coachId}`);
+      filtered.sort((a, b) => {
+        const scoreA = getPriorityScore(a);
+        const scoreB = getPriorityScore(b);
+        return scoreB - scoreA;
+      });
+      
+      // Tính điểm trung bình của toa
+      const avgScore = filtered.reduce((sum, seat) => sum + getPriorityScore(seat), 0) / filtered.length;
+      
+      // Thêm ghế vào danh sách tổng
+      allFilteredSeats.push(...filtered.map(seat => ({ ...seat, coachId })));
+      
+      // Kiểm tra xem đây có phải toa tốt nhất không
+      if (filtered.length > bestCoachInfo.seatCount || 
+          (filtered.length === bestCoachInfo.seatCount && avgScore > bestCoachInfo.avgScore)) {
+        bestCoachInfo = {
+          id: coachId,
+          seats: filtered,
+          seatCount: filtered.length,
+          avgScore: avgScore
+        };
+      }
+      
+      console.log(`🎉 Coach ${coachId} final results: ${filtered.length} seats, avg score: ${avgScore.toFixed(1)}`);
+    });
+
+    // Sắp xếp tất cả ghế theo priority score
+    allFilteredSeats.sort((a, b) => getPriorityScore(b) - getPriorityScore(a));
+    
+    // Update filtered seat IDs
+    if (onFilteredSeatsChange) {
+      onFilteredSeatsChange(allFilteredSeats.map(seat => seat.id));
+    }
+    
+    console.log('\n🎉 ===== FILTERING COMPLETE =====');
+    console.log(`Total results: ${allFilteredSeats.length} seats match all criteria across all coaches`);
+    console.log(`Best coach: ${bestCoachInfo.id} with ${bestCoachInfo.seatCount} seats`);
+    
+    if (allFilteredSeats.length > 0 && bestCoachInfo.id) {
+      // TỰ ĐỘNG CHUYỂN ĐẾN TOA TỐT NHẤT
+      const currentCoachId = coaches[selectedCoachIdx]?.id;
+      if (bestCoachInfo.id !== currentCoachId) {
+        console.log(`🚂 Auto-switching from Coach ${currentCoachId} to Coach ${bestCoachInfo.id}`);
+        
+        // Tìm index của coach tốt nhất
+        const bestCoachIndex = coaches.findIndex(coach => coach.id === bestCoachInfo.id);
+        if (bestCoachIndex !== -1 && onBestCoachSwitch) {
+          onBestCoachSwitch(bestCoachIndex);
+        }
+      }
+      
+      // Display results with Salesforce-style messaging
+      const message = `✅ Found ${allFilteredSeats.length} records matching criteria across all coaches`;
+      if (onShowToast) {
+        onShowToast(message, '#4caf50');
+      }
+    } else {
+      // Không tìm thấy ghế nào
+      const message = `❌ No records found. Try adjusting Record Types or Priority Preferences.`;
+      if (onShowToast) {
+        onShowToast(message, '#f44336');
+      }
+    }
+    
+    console.log('Filter summary:', {
+      recordTypes: externalRecordTypes || Object.entries(currentRecordTypes).filter(([_, isActive]) => isActive).map(([type]) => type),
+      priorityPreference: externalPriorityPreference || priorityPreference,
+      priceRange: [filterMinPrice, filterMaxPrice],
+      noiseLevel,
+      matchedSeats: allFilteredSeats.length,
+      bestCoach: bestCoachInfo.id
+    });
+    
+    return allFilteredSeats.length;
+  };
+
+  // ======================== END INTEGRATED FILTER LOGIC ========================
 
   // CustomCheckbox component  
   const CustomCheckbox = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
@@ -367,6 +1004,7 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
       background: '#fff', 
       borderRadius: 12, 
       padding: 20, 
+      marginBottom: 40, // Add extra bottom margin to ensure buttons are visible
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
       border: '1px solid #e0e0e0'
     }}>
@@ -402,26 +1040,27 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
           background: 'linear-gradient(to bottom, rgba(249,249,249,0.5), transparent)',
           borderRadius: '8px 8px 0 0'
         }}>
-          {getPriceHistogram(18).map((count, idx) => {
-            const maxCount = Math.max(...getPriceHistogram(18));
+          {getPriceHistogram(12).map((count, idx) => {
+            const maxCount = Math.max(...getPriceHistogram(12));
             // Tăng chiều cao tối đa lên 70px và đảm bảo sự khác biệt rõ ràng
             const baseHeight = maxCount > 0 ? (count / maxCount) * 70 : 0;
-            const height = count > 0 ? Math.max(baseHeight, 6) : 0; // Tối thiểu 6px cho bin có data
-            const position = (idx / (getPriceHistogram(18).length - 1)) * 100;
+            const height = count > 0 ? Math.max(baseHeight, 8) : 0; // Tối thiểu 8px cho bin có data
+            const position = (idx / (getPriceHistogram(12).length - 1)) * 100;
             const isInRange = position >= leftHandle && position <= rightHandle;
-            const priceRange = getPriceForBin(idx, 18);
+            const priceRange = getPriceForBin(idx, 12);
             const seatType = getSeatTypeInfo(idx);
             
             return (
               <div
                 key={idx}
                 style={{ 
-                  width: `${92 / getPriceHistogram(18).length}%`,
+                  width: `${96 / getPriceHistogram(12).length}%`,
                   cursor: 'pointer',
                   position: 'relative',
                   display: 'flex',
                   flexDirection: 'column',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  margin: '0 1px' // Small margin between bars
                 }}
                 title={`${seatType}: ${priceRange.start.toLocaleString()}đ - ${priceRange.end.toLocaleString()}đ (${count} ghế)`}
                 onMouseEnter={(e) => {
@@ -699,6 +1338,7 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
         
         {/* Record Type checkboxes */}
         <div style={{ border: '1px solid #e0e0e0', borderRadius: 8, overflow: 'hidden' }}>
+          {/* Ghế ngồi (toa 1, 2) */}
           <div style={{ 
             padding: '12px 16px', 
             borderBottom: '1px solid #e0e0e0',
@@ -709,7 +1349,7 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
           }}
           onClick={(e) => {
             e.preventDefault();
-            console.log('🖱️ Standard Seats div clicked');
+            console.log('🖱️ Ghế ngồi div clicked');
             handleRecordTypeChange('standard');
           }}
           >
@@ -718,16 +1358,47 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
               onChange={() => handleRecordTypeChange('standard')} 
             />
             <div>
-              <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>{SEAT_CATEGORIES.STANDARD_SEATS.label}</div>
+              <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>Ghế ngồi</div>
               <div style={{ fontSize: 12, color: '#666' }}>
-                {SEAT_CATEGORIES.STANDARD_SEATS.description}
+                Ghế ngồi thường (toa 1, 2)
               </div>
               <div style={{ fontSize: 12, color: '#999' }}>
-                Coaches {SEAT_CATEGORIES.STANDARD_SEATS.coaches.join(', ')} • Priority {SEAT_CATEGORIES.STANDARD_SEATS.priority}
+                Coaches 1, 2 • Priority 1
               </div>
             </div>
           </div>
           
+          {/* 2 giường 1 cabin (toa 3) */}
+          <div style={{ 
+            padding: '12px 16px', 
+            borderBottom: '1px solid #e0e0e0',
+            background: currentRecordTypes.two_berth ? '#e3f2fd' : '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            console.log('🖱️ 2 giường 1 cabin div clicked');
+            handleRecordTypeChange('two_berth');
+          }}
+          >
+            <CustomCheckbox 
+              checked={currentRecordTypes.two_berth} 
+              onChange={() => handleRecordTypeChange('two_berth')} 
+            />
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>2 giường 1 cabin</div>
+              <div style={{ fontSize: 12, color: '#666' }}>
+                Cabin ngủ 2 giường (toa 3) - Hỗ trợ kidzone
+              </div>
+              <div style={{ fontSize: 12, color: '#999' }}>
+                Coach 3 • Priority 4 • Kidzone available
+              </div>
+            </div>
+          </div>
+          
+          {/* 6 giường 1 cabin (toa 5, 6, 7) */}
           <div style={{ 
             padding: '12px 16px', 
             borderBottom: '1px solid #e0e0e0',
@@ -738,7 +1409,7 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
           }}
           onClick={(e) => {
             e.preventDefault();
-            console.log('🖱️ 6-Berth Cabins div clicked');
+            console.log('🖱️ 6 giường 1 cabin div clicked');
             handleRecordTypeChange('medium_priority');
           }}
           >
@@ -747,16 +1418,17 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
               onChange={() => handleRecordTypeChange('medium_priority')} 
             />
             <div>
-              <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>{SEAT_CATEGORIES.BERTH_6_CABINS.label}</div>
+              <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>6 giường 1 cabin</div>
               <div style={{ fontSize: 12, color: '#666' }}>
-                {SEAT_CATEGORIES.BERTH_6_CABINS.description}
+                Cabin ngủ 6 giường (toa 5, 6, 7) - Toa 5 hỗ trợ kidzone
               </div>
               <div style={{ fontSize: 12, color: '#999' }}>
-                Coaches {SEAT_CATEGORIES.BERTH_6_CABINS.coaches.join(', ')} • Priority {SEAT_CATEGORIES.BERTH_6_CABINS.priority}
+                Coaches 5, 6, 7 • Priority 2 • Kidzone at coach 5
               </div>
             </div>
           </div>
           
+          {/* 4 giường 1 cabin (toa 4, 8, 9, 10) */}
           <div style={{ 
             padding: '12px 16px',
             background: currentRecordTypes.high_priority ? '#e3f2fd' : '#fff',
@@ -766,7 +1438,7 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
           }}
           onClick={(e) => {
             e.preventDefault();
-            console.log('🖱️ 4-Berth Cabins div clicked');
+            console.log('🖱️ 4 giường 1 cabin div clicked');
             handleRecordTypeChange('high_priority');
           }}
           >
@@ -775,99 +1447,15 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
               onChange={() => handleRecordTypeChange('high_priority')} 
             />
             <div>
-              <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>{SEAT_CATEGORIES.BERTH_4_CABINS.label}</div>
+              <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>4 giường 1 cabin</div>
               <div style={{ fontSize: 12, color: '#666' }}>
-                {SEAT_CATEGORIES.BERTH_4_CABINS.description}
+                Cabin ngủ 4 giường (toa 4, 8, 9, 10) - Toa 4 hỗ trợ kidzone
               </div>
               <div style={{ fontSize: 12, color: '#999' }}>
-                Coaches {SEAT_CATEGORIES.BERTH_4_CABINS.coaches.join(', ')} • Priority {SEAT_CATEGORIES.BERTH_4_CABINS.priority}
+                Coaches 4, 8, 9, 10 • Priority 3 • Kidzone at coach 4
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Priority Preferences Section */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, color: '#333', marginBottom: 12 }}>
-          Priority Preferences
-        </div>
-        <div style={{ fontSize: 12, color: '#666', marginBottom: 12 }}>
-          Choose how to prioritise results
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            cursor: 'pointer',
-            padding: '8px 12px',
-            borderRadius: 6,
-            background: priorityPreference === 'all' ? '#e3f2fd' : '#f9f9f9'
-          }}>
-            <input
-              type="radio"
-              name="priority"
-              value="all"
-              checked={priorityPreference === 'all'}
-              onChange={(e) => setPriorityPreference(e.target.value)}
-              style={{ marginRight: 8 }}
-            />
-            <div>
-              <span style={{ fontWeight: 500, fontSize: 14 }}>Show All Records</span>
-              <div style={{ fontSize: 12, color: '#666' }}>
-                Display all matching seats, sorted by priority score
-              </div>
-            </div>
-          </label>
-          
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            cursor: 'pointer',
-            padding: '8px 12px',
-            borderRadius: 6,
-            background: priorityPreference === 'highPriority' ? '#e3f2fd' : '#f9f9f9'
-          }}>
-            <input
-              type="radio"
-              name="priority"
-              value="highPriority"
-              checked={priorityPreference === 'highPriority'}
-              onChange={(e) => setPriorityPreference(e.target.value)}
-              style={{ marginRight: 8 }}
-            />
-            <div>
-              <span style={{ fontWeight: 500, fontSize: 14 }}>High Priority Only</span>
-              <div style={{ fontSize: 12, color: '#666' }}>
-                Show only premium seats with high priority scores
-              </div>
-            </div>
-          </label>
-          
-          <label style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            cursor: 'pointer',
-            padding: '8px 12px',
-            borderRadius: 6,
-            background: priorityPreference === 'lowPriority' ? '#e3f2fd' : '#f9f9f9'
-          }}>
-            <input
-              type="radio"
-              name="priority"
-              value="lowPriority"
-              checked={priorityPreference === 'lowPriority'}
-              onChange={(e) => setPriorityPreference(e.target.value)}
-              style={{ marginRight: 8 }}
-            />
-            <div>
-              <span style={{ fontWeight: 500, fontSize: 14 }}>Low Priority Only</span>
-              <div style={{ fontSize: 12, color: '#666' }}>
-                Show only budget seats with low priority scores
-              </div>
-            </div>
-          </label>
         </div>
       </div>
 
@@ -888,6 +1476,8 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
               type="radio"
               name="noise"
               value="quiet"
+              checked={noiseLevel === 'quiet'}
+              onChange={() => setNoiseLevel('quiet')}
               style={{ marginRight: 8 }}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -906,6 +1496,8 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
               type="radio"
               name="noise"
               value="noise"
+              checked={noiseLevel === 'noise'}
+              onChange={() => setNoiseLevel('noise')}
               style={{ marginRight: 8 }}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -913,10 +1505,33 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
               <span>Noise</span>
             </div>
           </label>
+          
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer',
+            fontSize: 14
+          }}>
+            <input
+              type="radio"
+              name="noise"
+              value="kidzone"
+              checked={noiseLevel === 'kidzone'}
+              onChange={() => setNoiseLevel('kidzone')}
+              style={{ marginRight: 8 }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ color: '#E91E63', fontSize: 16 }}>●</span>
+              <span>Kidzone</span>
+            </div>
+          </label>
         </div>
         
         <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>
-          Color: <span style={{ color: '#4CAF50' }}>red (noise)</span>; <span style={{ color: '#FF9800' }}>green (quiet)</span>
+          <strong>Quiet:</strong> Ghế có màu xanh lá - yên tĩnh (behavior 'quiet')<br/>
+          <strong>Noise:</strong> Ghế có màu đỏ cam - náo nhiệt (behavior 'social')<br/>
+          <strong>Kidzone:</strong> Khu vực gia đình & mẹ bầu chuyên dụng (toa 3, 4, 5)<br/>
+          <em style={{ color: '#999', fontSize: 11 }}>💡 Màu sắc ghế: Đỏ = Nhiều tiếng ồn ↔ Xanh = Yên tĩnh</em>
         </div>
       </div>
 
@@ -939,32 +1554,61 @@ const PriceFilter: React.FC<PriceFilterProps> = ({
       </div>
 
       {/* Apply Record Filter Button */}
-      <button
-        onClick={applyRecordFilter}
-        style={{
-          width: '100%',
-          background: 'linear-gradient(135deg, #2196F3, #1976D2)',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 8,
-          padding: '12px 0',
-          fontWeight: 700,
-          fontSize: 15,
-          cursor: 'pointer',
-          transition: 'all 0.2s',
-          boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-1px)';
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.4)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 2px 8px rgba(33, 150, 243, 0.3)';
-        }}
-      >
-        Apply Record Filter
-      </button>
+      <div style={{ display: 'flex', gap: 12, paddingBottom: 20 }}>
+        <button
+          onClick={resetFilters}
+          style={{
+            flex: 1,
+            background: 'linear-gradient(135deg, #FFA726, #FF9800)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '12px 0',
+            fontWeight: 700,
+            fontSize: 15,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(255, 152, 0, 0.3)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 152, 0, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(255, 152, 0, 0.3)';
+          }}
+        >
+          Reset Filters
+        </button>
+        
+        <button
+          onClick={applyRecordFilter}
+          style={{
+            flex: 2,
+            background: 'linear-gradient(135deg, #2196F3, #1976D2)',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '12px 0',
+            fontWeight: 700,
+            fontSize: 15,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(33, 150, 243, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 2px 8px rgba(33, 150, 243, 0.3)';
+          }}
+        >
+          Apply Record Filter
+        </button>
+      </div>
     </div>
   );
 };

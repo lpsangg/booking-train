@@ -56,7 +56,7 @@ export const SEAT_CATEGORIES = {
   STANDARD_SEATS: {
     key: 'standard',
     label: 'Standard Seats',
-    description: 'Regular seating without sleeping',
+    description: 'Regular seating',
     coaches: [1, 2],
     priority: 1
   },

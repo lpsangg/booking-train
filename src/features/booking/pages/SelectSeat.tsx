@@ -15,7 +15,7 @@ interface LocalSeat {
   floor: 1 | 2 | 3;
   price: number;
   status: 'available' | 'occupied' | 'reserved' | 'selected';
-  behavior: 'quiet' | 'social';
+  behavior: 'quiet' | 'social' | 'kidzone';
   nearWC: boolean;
   nearSimilarBehavior: boolean;
   passengersNearby: number;
@@ -572,8 +572,9 @@ const SelectSeat: React.FC = () => {
     elderly: 0,
     student: 0,
     union: 0,
+    expectant_nursing_mother: 0, // Sửa từ nursing thành expectant_nursing_mother
   };
-  const totalPassengers = passenger.adult + passenger.child + passenger.elderly + passenger.student + passenger.union;
+  const totalPassengers = passenger.adult + passenger.child + passenger.elderly + passenger.student + passenger.union + (passenger.expectant_nursing_mother || 0);
   
   // State cho giá động
   const [dynamicPrices, setDynamicPrices] = useState<DynamicPriceItem[]>([]);
@@ -593,6 +594,7 @@ const SelectSeat: React.FC = () => {
     if (passenger.elderly > 0) parts.push(`${passenger.elderly} người già`);
     if (passenger.student > 0) parts.push(`${passenger.student} học sinh`);
     if (passenger.union > 0) parts.push(`${passenger.union} đoàn viên`);
+    if (passenger.expectant_nursing_mother > 0) parts.push(`${passenger.expectant_nursing_mother} mẹ cho con bú`);
     return parts.join(', ');
   };
 
@@ -1275,233 +1277,174 @@ useEffect(() => {
   // Tổng số ghế còn lại cho từng toa
 
 
-  // Hàm tính behavior dựa trên noise level (màu sắc)
-  const getBehaviorFromColor = (coachId: number, seatIndex: number): 'quiet' | 'social' => {
-    const coach = COACHES.find(c => c.id === coachId);
-    if (!coach) return 'social';
-
-    let noiseValue = 0;
-
-    // Toa 1,2: dùng chung 1 dải màu
-    if ([1,2].includes(coachId)) {
-      const noise1 = NOISE_KHOANGS_1.flat();
-      const noise2 = NOISE_KHOANGS_2.flat();
-      const flatNoise = [...noise1, ...noise2];
-      let globalIdx = seatIndex;
-      if (coachId === 2) globalIdx += noise1.length;
-      noiseValue = flatNoise[globalIdx] || 0;
-      const min = Math.min(...flatNoise);
-      const max = Math.max(...flatNoise);
-      const percent = (noiseValue - min) / (max - min);
-      // Nếu percent > 0.5 thì quiet (màu xanh), ngược lại social (màu cam đỏ)
-      return percent > 0.5 ? 'quiet' : 'social';
-    }
-
-    // Toa 3,4,5: Pregnant mother cabin + Family cabin - không dùng heatmap/behavior phức tạp
-    if ([3,4,5].includes(coachId)) {
-      // Toa dành cho phụ nữ mang thai/cho con bú và gia đình - mặc định quiet
-      return 'quiet';
-    }
-
-    // Toa 6-10: sử dụng logic tương tự getSeatColor với dải màu chung
-    if ([6,7,8,9,10].includes(coachId)) {
-      // Ghép tất cả noise data từ toa 6-10 giống getSeatColor
-      const noise6 = NOISE_KHOANGS_4.flat();
-      const noise7 = NOISE_KHOANGS_5.flat();
-      const noise8 = NOISE_KHOANGS_4_8.flat();
-      const noise9 = NOISE_KHOANGS_4_9.flat();
-      const noise10 = NOISE_KHOANGS_4_10.flat();
-      const flatNoise = [...noise6, ...noise7, ...noise8, ...noise9, ...noise10];
-      
-      let globalIdx = seatIndex;
-      
-      // Tính offset dựa trên toa
-      if (coachId === 7) {
-        globalIdx += noise6.length;
-      } else if (coachId === 8) {
-        globalIdx += noise6.length + noise7.length;
-      } else if (coachId === 9) {
-        globalIdx += noise6.length + noise7.length + noise8.length;
-      } else if (coachId === 10) {
-        globalIdx += noise6.length + noise7.length + noise8.length + noise9.length;
-      }
-      
-      if (globalIdx >= flatNoise.length) return 'quiet';
-      const noiseValue = flatNoise[globalIdx];
-      if (noiseValue === undefined) return 'quiet';
-      
-      const min = Math.min(...flatNoise);
-      const max = Math.max(...flatNoise);
-      const percent = (noiseValue - min) / (max - min);
-      return percent > 0.5 ? 'quiet' : 'social';
-    }
-
-    // Mặc định cho các toa khác
-    return Math.random() > 0.5 ? 'quiet' : 'social';
+  // ==================== COLOR & BEHAVIOR LOGIC ====================
+  
+  // Hàm tạo màu gradient từ đỏ đến xanh
+  const createGradientColor = (percent: number) => {
+    // Clamp percent between 0 and 1
+    const normalizedPercent = Math.max(0, Math.min(1, percent));
+    
+    // Màu đỏ cam (start): #F97316 (249, 115, 22)
+    // Màu xanh lá (end): #22C55E (34, 197, 94)
+    const startColor = { r: 249, g: 115, b: 22 };
+    const endColor = { r: 34, g: 197, b: 94 };
+    
+    const r = Math.round(startColor.r + (endColor.r - startColor.r) * normalizedPercent);
+    const g = Math.round(startColor.g + (endColor.g - startColor.g) * normalizedPercent);
+    const b = Math.round(startColor.b + (endColor.b - startColor.b) * normalizedPercent);
+    
+    return `rgb(${r}, ${g}, ${b})`;
   };
 
-  // Hàm tính toán màu sắc cho ghế dựa trên toa và vị trí
+  // Hàm tính toán màu sắc cho ghế với dải màu "chảy" từ đỏ đến xanh theo khu vực
   const getSeatColor = (coachId: number, seatIndex: number) => {
     const coach = COACHES.find(c => c.id === coachId);
     if (!coach) return "#e0e0e0";
 
-    // Toa 1,2: dùng chung 1 dải màu
-    if ([1,2].includes(coachId)) {
-      // Ghép noise của toa 1 và 2
-      const noise1 = NOISE_KHOANGS_1.flat();
-      const noise2 = NOISE_KHOANGS_2.flat();
-      const flatNoise = [...noise1, ...noise2];
-      let globalIdx = seatIndex;
-      if (coachId === 2) globalIdx += noise1.length;
-      const min = Math.min(...flatNoise);
-      const max = Math.max(...flatNoise);
-      const value = flatNoise[globalIdx];
-      const percent = (value - min) / (max - min);
-      function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-      const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 };
-      const r = Math.round(lerp(c1.r, c2.r, percent));
-      const g = Math.round(lerp(c1.g, c2.g, percent));
-      const b = Math.round(lerp(c1.b, c2.b, percent));
-      return `rgb(${r},${g},${b})`;
+    // Khu ghế ngồi: Toa 1-2 (dải màu chảy liên tục)
+    if ([1, 2].includes(coachId)) {
+      // Giả sử mỗi toa có khoảng 64 ghế (8 hàng x 8 ghế)
+      const seatsPerCoach = 64;
+      const totalSeatsInZone = seatsPerCoach * 2; // 2 toa
+      
+      let globalSeatIndex = seatIndex;
+      if (coachId === 2) {
+        globalSeatIndex += seatsPerCoach; // Offset cho toa 2
+      }
+      
+      const percent = globalSeatIndex / (totalSeatsInZone - 1);
+      return createGradientColor(percent);
     }
 
-    // Toa 3,4,5: không dùng heatmap (toa Pregnant mother + Family cabin)
-    if ([3,4,5].includes(coachId)) {
-      return "#e0e0e0"; // Màu ghế mặc định, không có heatmap
-    }
-    // Toa 6-10: dùng chung 1 dải màu "chảy" từ đỏ đến xanh như toa 1-2
-    if ([6,7,8,9,10].includes(coachId)) {
-      // Ghép tất cả noise data từ toa 6-10
-      const noise6 = NOISE_KHOANGS_4.flat(); // Toa 6
-      const noise7 = NOISE_KHOANGS_5.flat(); // Toa 7
-      const noise8 = NOISE_KHOANGS_4_8.flat(); // Toa 8
-      const noise9 = NOISE_KHOANGS_4_9.flat(); // Toa 9
-      const noise10 = NOISE_KHOANGS_4_10.flat(); // Toa 10
-      const flatNoise = [...noise6, ...noise7, ...noise8, ...noise9, ...noise10];
+    // Khu 6 giường 1 cabin: Toa 6-7 (dải màu chảy riêng)
+    if ([6, 7].includes(coachId)) {
+      // Giả sử mỗi toa 6-berth có khoảng 42 chỗ (7 cabin x 6 ghế)
+      const seatsPerCoach = 42;
+      const totalSeatsInZone = seatsPerCoach * 2; // 2 toa
       
-      let globalIdx = seatIndex;
-      
-      // Tính offset dựa trên toa
+      let globalSeatIndex = seatIndex;
       if (coachId === 7) {
-        globalIdx += noise6.length;
-      } else if (coachId === 8) {
-        globalIdx += noise6.length + noise7.length;
-      } else if (coachId === 9) {
-        globalIdx += noise6.length + noise7.length + noise8.length;
-      } else if (coachId === 10) {
-        globalIdx += noise6.length + noise7.length + noise8.length + noise9.length;
+        globalSeatIndex += seatsPerCoach; // Offset cho toa 7
       }
       
-      // Tạo dải màu "chảy" từ cam đỏ đến xanh lá như toa 1-2
-      const min = Math.min(...flatNoise);
-      const max = Math.max(...flatNoise);
-      const value = flatNoise[globalIdx];
-      if (value === undefined) return "#e0e0e0";
+      const percent = globalSeatIndex / (totalSeatsInZone - 1);
+      return createGradientColor(percent);
+    }
+
+    // Khu 4 giường 1 cabin: Toa 8-10 (dải màu chảy riêng)
+    if ([8, 9, 10].includes(coachId)) {
+      // Giả sử mỗi toa 4-berth có khoảng 28 chỗ (7 cabin x 4 ghế)
+      const seatsPerCoach = 28;
+      const totalSeatsInZone = seatsPerCoach * 3; // 3 toa
       
-      const percent = (value - min) / (max - min);
-      function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-      const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 }; // cam đỏ -> xanh lá
-      const r = Math.round(lerp(c1.r, c2.r, percent));
-      const g = Math.round(lerp(c1.g, c2.g, percent));
-      const b = Math.round(lerp(c1.b, c2.b, percent));
-      return `rgb(${r},${g},${b})`;
-    }
-    // ... giữ nguyên logic cũ cho các toa khác ...
-
-    // Xác định loại toa và lấy ma trận noise tương ứng
-    let noiseMatrix: number[][] = [];
-    let colorFunction: (value: number) => string = () => "#e0e0e0";
-
-    if (coach.type === 'Soft seat' || coach.type === 'Gối mềm') {
-      // Toa ngồi: sử dụng ma trận noise cơ bản và gradient cam-xanh lá
-      if (coachId === 1) {
-        noiseMatrix = NOISE_KHOANGS_1;
-        colorFunction = (value: number) => {
-          const min = 1200, max = 1335;
-          const percent = (value - min) / (max - min);
-          function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-          const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 };
-          const r = Math.round(lerp(c1.r, c2.r, percent));
-          const g = Math.round(lerp(c1.g, c2.g, percent));
-          const b = Math.round(lerp(c1.b, c2.b, percent));
-          return `rgb(${r},${g},${b})`;
-        };
-      } else if (coachId === 2) {
-        noiseMatrix = NOISE_KHOANGS_2;
-        colorFunction = (value: number) => {
-          const min = 1340, max = 1475;
-          const percent = (value - min) / (max - min);
-          function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
-          const c1 = { r: 249, g: 115, b: 22 }, c2 = { r: 34, g: 197, b: 94 };
-          const r = Math.round(lerp(c1.r, c2.r, percent));
-          const g = Math.round(lerp(c1.g, c2.g, percent));
-          const b = Math.round(lerp(c1.b, c2.b, percent));
-          return `rgb(${r},${g},${b})`;
-        };
-      }
-    } else if (coach.type === '6-berth cabin') {
-      // Toa 6,7: 6-berth cabin
-      if (coachId === 6) {
-        noiseMatrix = NOISE_KHOANGS_4;
-        colorFunction = getNoiseColor4_v2;
-      } else if (coachId === 7) {
-        noiseMatrix = NOISE_KHOANGS_5;
-        colorFunction = getNoiseColor5_v2;
-      }
-    } else if (coach.type === '4-berth cabin') {
-      // Toa 8, 9, 10: 4-berth cabin
-      if (coachId === 8) {
-        noiseMatrix = NOISE_KHOANGS_4_8;
-        colorFunction = getNoiseColor4_8_v2;
-      } else if (coachId === 9) {
-        noiseMatrix = NOISE_KHOANGS_4_9;
-        colorFunction = getNoiseColor4_9_v2;
+      let globalSeatIndex = seatIndex;
+      if (coachId === 9) {
+        globalSeatIndex += seatsPerCoach; // Offset cho toa 9
       } else if (coachId === 10) {
-        noiseMatrix = NOISE_KHOANGS_4_10;
-        colorFunction = getNoiseColor4_10_v2;
+        globalSeatIndex += seatsPerCoach * 2; // Offset cho toa 10
       }
+      
+      const percent = globalSeatIndex / (totalSeatsInZone - 1);
+      return createGradientColor(percent);
     }
 
-    if (noiseMatrix.length === 0) {
-      return "#e0e0e0";
+    // Các toa đặc biệt khác
+    if (coachId === 3) {
+      // Toa 3: 2 giường 1 cabin - Màu hồng cho kidzone
+      return "#E91E63";
+    }
+    
+    if ([4, 5].includes(coachId)) {
+      // Toa 4,5: Các loại cabin khác - Màu tím nhẹ
+      return "#9C27B0";
     }
 
-    let khoangIdx = 0;
-    let tangIdx = 0;
-    let seatInTang = 0;
-
-    if (coach.type === '4-berth cabin') {
-      // 7 khoang, mỗi khoang 2 tầng, mỗi tầng 2 ghế (4 ghế/khoang)
-      khoangIdx = Math.floor(seatIndex / 4);
-      const seatInKhoang = seatIndex % 4;
-      // Đảo ngược chiều index để dải màu chuyển đều từ đỏ sang xanh
-      seatInTang = Math.floor(seatInKhoang / 2); // cột
-      tangIdx = seatInKhoang % 2; // hàng
-    } else if (coach.type === '6-berth cabin') {
-      khoangIdx = Math.floor(seatIndex / 6);
-      const seatInKhoang = seatIndex % 6;
-      tangIdx = Math.floor(seatInKhoang / 2);
-      seatInTang = seatInKhoang % 2;
-    } else if (coach.type === 'Soft seat' || coach.type === 'Gối mềm') {
-      khoangIdx = Math.floor(seatIndex / 7);
-      seatInTang = seatIndex % 7;
-      tangIdx = 0;
-    }
-
-    if (
-      khoangIdx < noiseMatrix.length &&
-      ((coach.type === '4-berth cabin' && tangIdx < 2 && seatInTang < 2) ||
-       (coach.type === '6-berth cabin' && tangIdx < 3 && seatInTang < 2) ||
-       (coach.type === 'Soft seat' || coach.type === 'Gối mềm'))
-    ) {
-      const noiseValue = noiseMatrix[khoangIdx][tangIdx * 2 + seatInTang];
-      return colorFunction(noiseValue);
-    }
-
+    // Fallback cho các toa không xác định
     return "#e0e0e0";
   };
 
-  // Hàm gợi ý chọn ghế liền kề cho nhóm
+  // Hàm phân tích màu để xác định behavior
+  const analyzeColorForBehavior = (colorString: string): 'quiet' | 'social' | 'kidzone' => {
+    if (!colorString || colorString === "#e0e0e0") return 'social'; // Default
+    
+    // Special colors
+    if (colorString === "#E91E63" || colorString === "#9C27B0") {
+      return 'kidzone';
+    }
+    
+    let r, g, b;
+    
+    if (colorString.startsWith('rgb')) {
+      // Parse rgb(r, g, b) format
+      const match = colorString.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (match) {
+        r = parseInt(match[1]);
+        g = parseInt(match[2]);
+        b = parseInt(match[3]);
+      } else {
+        return 'social'; // Default
+      }
+    } else if (colorString.startsWith('#')) {
+      // Parse hex format
+      const hex = colorString.replace('#', '');
+      r = parseInt(hex.substr(0, 2), 16);
+      g = parseInt(hex.substr(2, 2), 16);
+      b = parseInt(hex.substr(4, 2), 16);
+    } else {
+      return 'social'; // Default
+    }
+    
+    // Calculate distance to reference colors
+    const redReference = { r: 249, g: 115, b: 22 }; // Orange-red (social/noise)
+    const greenReference = { r: 34, g: 197, b: 94 }; // Green (quiet)
+    
+    const distanceToRed = Math.sqrt(
+      Math.pow(r - redReference.r, 2) + 
+      Math.pow(g - redReference.g, 2) + 
+      Math.pow(b - redReference.b, 2)
+    );
+    
+    const distanceToGreen = Math.sqrt(
+      Math.pow(r - greenReference.r, 2) + 
+      Math.pow(g - greenReference.g, 2) + 
+      Math.pow(b - greenReference.b, 2)
+    );
+    
+    // Closer to green = quiet, closer to red = social
+    if (distanceToGreen < distanceToRed) {
+      return 'quiet';
+    } else {
+      return 'social';
+    }
+  };
+
+  // Hàm tính behavior dựa trên coach ID và vị trí ghế (theo màu gradient)
+  const getBehaviorFromColor = (coachId: number, seatIndex: number): 'quiet' | 'social' | 'kidzone' => {
+    console.log(`🎯 getBehaviorFromColor called for Coach ${coachId}, Seat Index ${seatIndex}`);
+    
+    // RULE 1: Toa 3,4,5 = kidzone (Family & Pregnant mother cabins)
+    if ([3, 4, 5].includes(coachId)) {
+      console.log(`✅ Coach ${coachId} is kidzone (family/pregnant mother area)`);
+      return 'kidzone';
+    }
+    
+    // RULE 2: Toa có gradient (1-2, 6-7, 8-10) - behavior dựa trên màu
+    if ([1, 2, 6, 7, 8, 9, 10].includes(coachId)) {
+      // Lấy màu của ghế
+      const seatColor = getSeatColor(coachId, seatIndex);
+      
+      // Phân tích màu để xác định behavior
+      const colorAnalysis = analyzeColorForBehavior(seatColor);
+      console.log(`🎨 Coach ${coachId} Seat ${seatIndex}: color=${seatColor} → behavior=${colorAnalysis}`);
+      
+      return colorAnalysis;
+    }
+    
+    // Default fallback
+    console.log(`⚠️ Coach ${coachId} not in predefined ranges, defaulting to social`);
+    return 'social';
+  };
+
   // ==================== AUTO SEAT SELECTION LOGIC ====================
   
   // Tính khoảng cách ghế từ vị trí toilet (toilet ở góc phải trên)
@@ -1746,7 +1689,7 @@ useEffect(() => {
     if (totalPassengers === 0) return;
 
     let selectedSeats: string[] = [];
-    const hasChildrenOrElderly = passenger.child > 0 || passenger.elderly > 0;
+    const hasChildrenOrElderly = passenger.child > 0 || passenger.elderly > 0 || passenger.nursing > 0;
 
     console.log('Auto selecting seats for:', {
       totalPassengers,
@@ -1899,11 +1842,14 @@ useEffect(() => {
   const [filteredSeatIds, setFilteredSeatIds] = useState<string[]>([]);
   const [filterDebounceTimer, setFilterDebounceTimer] = useState<NodeJS.Timeout | null>(null);
   
-  // Salesforce-style Record Type filtering
-  const [selectedRecordTypes, setSelectedRecordTypes] = useState<string[]>(['standard', 'medium_priority', 'high_priority']);
+  // Salesforce-style Record Type filtering - Default to none selected
+  const [selectedRecordTypes, setSelectedRecordTypes] = useState<string[]>([]);
   
   // Salesforce-style Priority Preference
   const [priorityPreference, setPriorityPreference] = useState<'all' | 'high_only'>('all');
+  
+  // Noise Level filter
+  const [selectedNoiseLevel, setSelectedNoiseLevel] = useState<'quiet' | 'noise' | 'kidzone' | null>(null);
 
 
   React.useEffect(() => {
@@ -1954,42 +1900,52 @@ useEffect(() => {
     }
   }, [seats]);
 
-  // Record Type Configuration (Salesforce-style object mapping)
+  // Record Type Configuration (updated to match PriceFilter.tsx)
   const recordTypeConfig = {
     standard: {
-      label: 'Standard Seats',
-      description: 'Regular seating with basic comfort',
+      label: 'Ghế ngồi',
+      description: 'Ghế ngồi thường (toa 1, 2)',
       criteria: {
         seatTypes: ['seat'],
         noiseLevel: ['quiet', 'social'],
-        coachPosition: [1, 2], // Toa 1-2
+        coachPosition: [1, 2], // Toa 1-2: Ghế ngồi
         priorityScore: 1
       }
     },
     medium_priority: {
-      label: '6-Berth Cabins',
-      description: 'Shared sleeper compartments (6 beds)',
+      label: '6 giường 1 cabin',
+      description: 'Cabin ngủ 6 giường (toa 5, 6, 7)',
       criteria: {
         seatTypes: ['compartment_6'],
-        noiseLevel: ['quiet', 'social'],
-        coachPosition: [3, 4, 5], // Toa 3-5
+        noiseLevel: ['quiet', 'social', 'kidzone'],
+        coachPosition: [5, 6, 7], // Toa 5,6,7: 6 giường 1 cabin
         priorityScore: 2
       }
     },
     high_priority: {
-      label: '4-Berth Cabins',
-      description: 'Premium sleeper compartments (4 beds)',
+      label: '4 giường 1 cabin',
+      description: 'Cabin ngủ 4 giường (toa 4, 8, 9, 10)',
       criteria: {
         seatTypes: ['compartment_4'],
-        noiseLevel: ['quiet', 'social'],
-        coachPosition: [6, 7, 8, 9, 10], // Toa 6-10
+        noiseLevel: ['quiet', 'social', 'kidzone'], // Toa 4 cũng hỗ trợ kidzone
+        coachPosition: [4, 8, 9, 10], // Toa 4,8,9,10: 4 giường 1 cabin
         priorityScore: 3
+      }
+    },
+    two_berth: {
+      label: '2 giường 1 cabin',
+      description: 'Cabin ngủ 2 giường (toa 3)',
+      criteria: {
+        seatTypes: ['compartment_2'],
+        noiseLevel: ['quiet', 'social', 'kidzone'], // Toa 3 hỗ trợ kidzone
+        coachPosition: [3], // Toa 3: 2 giường 1 cabin
+        priorityScore: 4
       }
     }
   };
 
   // Legacy compatibility state (để giữ tương thích với code cũ)
-  const [behavior] = useState<'quiet' | 'noise' | null>(null);
+  const [behavior] = useState<'quiet' | 'noise' | 'kidzone' | null>(null);
   const [seatTypeFilters] = useState({
     seat: true,
     compartment_4: true,
@@ -2006,10 +1962,13 @@ useEffect(() => {
       score += Math.max(0, 11 - coachId); // Decreasing noise by coach position
     } else if (seat.behavior === 'social') {
       score += Math.max(0, coachId - 1); // Increasing noise by coach position
+    } else if (seat.behavior === 'kidzone') {
+      score += 15; // Special scoring for kidzone (family-friendly areas)
     }
     
     // Seat type scoring
-    if (seat.id.includes('-k4-')) score += 30; // 4-berth cabin (highest priority)
+    if (seat.id.includes('-k2-')) score += 35; // 2-berth cabin (highest priority)
+    else if (seat.id.includes('-k4-')) score += 30; // 4-berth cabin (high priority)
     else if (seat.id.includes('-k6-')) score += 20; // 6-berth cabin (medium priority)
     else if (seat.id.includes('-ngoi-')) score += 10; // Seat (standard priority)
     
@@ -2050,6 +2009,8 @@ useEffect(() => {
     // Method 1: Check seat ID patterns
     if (seat.id.includes('-ngoi-') || seat.id.includes('ngoi')) {
       actualSeatType = 'seat';
+    } else if (seat.id.includes('-k2-') || seat.id.includes('k2')) {
+      actualSeatType = 'compartment_2';
     } else if (seat.id.includes('-k4-') || seat.id.includes('k4')) {
       actualSeatType = 'compartment_4';
     } else if (seat.id.includes('-k6-') || seat.id.includes('k6')) {
@@ -2059,11 +2020,13 @@ useEffect(() => {
     // Method 2: If ID pattern fails, determine by coach position (more reliable)
     if (!actualSeatType) {
       if (coachId === 1 || coachId === 2) {
-        actualSeatType = 'seat'; // Toa 1-2 are soft seats
-      } else if (coachId >= 3 && coachId <= 5) {
-        actualSeatType = 'compartment_6'; // Toa 3-5 are 6-berth cabins
-      } else if (coachId >= 6 && coachId <= 10) {
-        actualSeatType = 'compartment_4'; // Toa 6-10 are 4-berth cabins
+        actualSeatType = 'seat'; // Toa 1-2: Ghế ngồi
+      } else if (coachId === 3) {
+        actualSeatType = 'compartment_2'; // Toa 3: 2 giường 1 cabin
+      } else if (coachId === 4 || coachId === 8 || coachId === 9 || coachId === 10) {
+        actualSeatType = 'compartment_4'; // Toa 4,8,9,10: 4 giường 1 cabin
+      } else if (coachId === 5 || coachId === 6 || coachId === 7) {
+        actualSeatType = 'compartment_6'; // Toa 5,6,7: 6 giường 1 cabin
       }
     }
     
@@ -2081,7 +2044,7 @@ useEffect(() => {
     
     // Check noise level criteria (if behavior filter is applied)
     if (behavior) {
-      const noiseLevel = behavior === 'quiet' ? 'quiet' : 'social';
+      const noiseLevel = behavior === 'quiet' ? 'quiet' : behavior === 'noise' ? 'social' : 'kidzone';
       console.log(`🔊 Checking noise level: ${noiseLevel} against allowed:`, config.criteria.noiseLevel);
       if (!config.criteria.noiseLevel.includes(noiseLevel)) {
         console.log(`❌ Noise level ${noiseLevel} not allowed for ${recordType}`);
@@ -2101,8 +2064,8 @@ useEffect(() => {
     console.log('Total seats to filter:', seats.length);
     
     if (selectedRecordTypes.length === 0) {
-      console.log('⚠️ No record types selected, returning all seats');
-      return seats;
+      console.log('⚠️ No record types selected, returning empty array (user must select at least one type)');
+      return [];
     }
     
     const filtered = seats.filter(seat => {
@@ -2196,7 +2159,7 @@ useEffect(() => {
 
   
   // Salesforce-style trigger filter update function
-  const triggerFilterUpdate = (minPrice: number, maxPrice: number, behaviorFilter: typeof behavior, seatTypes: typeof seatTypeFilters) => {
+  const triggerFilterUpdate = (minPrice: number, maxPrice: number, behaviorFilter: 'quiet' | 'noise' | 'kidzone' | null, seatTypes: typeof seatTypeFilters) => {
     if (!isFilterActive) return;
     
     console.log('Salesforce-style auto-filtering with:', {
@@ -2224,7 +2187,7 @@ useEffect(() => {
   // const maxBin = Math.max(...bins, 1); // Removed unused variable
 
   // Salesforce-style filter application function
-  const applyFilters = (minPrice: number, maxPrice: number, behaviorFilter: typeof behavior, seatTypes: typeof seatTypeFilters) => {
+  const applyFilters = (minPrice: number, maxPrice: number, behaviorFilter: 'quiet' | 'noise' | 'kidzone' | null, seatTypes: typeof seatTypeFilters) => {
     console.log('\n🚀 ===== STARTING SALESFORCE-STYLE FILTERING =====');
     console.log('Filter parameters:', {
       selectedRecordTypes,
@@ -2243,6 +2206,22 @@ useEffect(() => {
       const currentCoachSeats = coachSeats[coachId] || [];
       
       if (currentCoachSeats.length === 0) return;
+
+      // Special logic for noise level filtering: only check relevant coaches
+      if (behaviorFilter === 'kidzone' && ![3, 4, 5].includes(coachId)) {
+        console.log(`⏭️ Skipping Coach ${coachId} - kidzone filter only applies to coaches 3, 4, 5`);
+        return;
+      }
+      
+      if (behaviorFilter === 'quiet' && ![1, 2, 6, 7, 8, 9, 10].includes(coachId)) {
+        console.log(`⏭️ Skipping Coach ${coachId} - quiet filter only applies to coaches with quiet zones`);
+        return;
+      }
+      
+      if (behaviorFilter === 'noise' && ![1, 2, 6, 7, 8, 9, 10].includes(coachId)) {
+        console.log(`⏭️ Skipping Coach ${coachId} - noise filter only applies to coaches with social zones`);
+        return;
+      }
 
       console.log(`\n📍 Checking Coach ${coachId} with ${currentCoachSeats.length} total seats`);
       
@@ -2273,17 +2252,29 @@ useEffect(() => {
       
       // Step 4: Apply behavior filtering (if specified)
       if (behaviorFilter) {
-        console.log(`\n🔊 STEP 4: Behavior Filtering for Coach ${coachId}`);
+        console.log(`\n🔊 STEP 4: Behavior Filtering for Coach ${coachId} (Looking for: ${behaviorFilter})`);
         const beforeBehaviorCount = filtered.length;
+        
+        // Log seat behaviors in this coach
+        console.log(`Coach ${coachId} seat behaviors:`, filtered.map(seat => `${seat.id}: ${seat.behavior}`));
+        
         filtered = filtered.filter(seat => {
           if (behaviorFilter === 'quiet') {
             return seat.behavior === 'quiet';
           } else if (behaviorFilter === 'noise') {
             return seat.behavior === 'social';
+          } else if (behaviorFilter === 'kidzone') {
+            console.log(`Checking seat ${seat.id} in coach ${coachId}: behavior=${seat.behavior}, isKidzone=${seat.behavior === 'kidzone'}`);
+            return seat.behavior === 'kidzone';
           }
           return true;
         });
         console.log(`After Behavior filtering: ${filtered.length}/${beforeBehaviorCount} seats remain in Coach ${coachId}`);
+        
+        // If kidzone filter and no seats found in this coach, explain why
+        if (behaviorFilter === 'kidzone' && filtered.length === 0 && beforeBehaviorCount > 0) {
+          console.log(`❌ Coach ${coachId} has no kidzone seats. Expected only coaches 3,4,5 to have kidzone behavior.`);
+        }
       }
       
       // Step 5: Legacy seat type filtering (for backward compatibility)
@@ -2407,6 +2398,7 @@ useEffect(() => {
       recordTypes: selectedRecordTypes,
       priorityPreference,
       priceRange: [filterMinPrice, filterMaxPrice],
+      noiseLevel: selectedNoiseLevel,
       behavior,
       seatTypeFilters
     });
@@ -2429,7 +2421,7 @@ useEffect(() => {
     console.log('🔥 Filter activated, calling applyFilters...');
     
     // Apply Salesforce-style filtering
-    const matchCount = applyFilters(filterMinPrice, filterMaxPrice, behavior, seatTypeFilters);
+    const matchCount = applyFilters(filterMinPrice, filterMaxPrice, selectedNoiseLevel, seatTypeFilters);
     
     // Log results with Salesforce-style terminology
     console.log(`🎉 Salesforce-style Record Filter applied successfully. Found ${matchCount} matching records.`);
@@ -2481,7 +2473,7 @@ useEffect(() => {
 
   // Khi trang load, nếu có trẻ em hoặc người cao tuổi thì hiện popup
   useEffect(() => {
-    if ((passenger.child > 0 || passenger.elderly > 0)) {
+    if ((passenger.child > 0 || passenger.elderly > 0 || passenger.nursing > 0)) {
       setShowWcSuggest(true);
     }
   }, [passenger.child, passenger.elderly]);
@@ -2494,7 +2486,7 @@ useEffect(() => {
           100% { transform: translateX(-50%); }
         }
       ` }} />
-      <div style={{ maxWidth: 480, margin: '0 auto', background: '#f7f7fa', minHeight: '100vh', paddingBottom: 80 }}>
+      <div style={{ maxWidth: 480, margin: '0 auto', background: '#f7f7fa', minHeight: '100vh', paddingBottom: 120 }}>
       {/* Header + Stepper */}
       <div style={{ background: '#1976d2', color: '#fff', padding: 16, borderRadius: '0 0 16px 16px', marginBottom: 8 }}>
         <div style={{ fontWeight: 700, fontSize: 18 }}>{from} → {to}</div>
@@ -2799,7 +2791,7 @@ useEffect(() => {
               👨‍👩‍👧‍👦 Family Zone Booking Rules
             </div>
             <div style={{ fontSize: 13, color: '#bf8900', lineHeight: 1.4 }}>
-              <div>• For groups of 3: Pay for 4 beds + privacy fee</div>
+              <div>• For groups of 3: Pay for 4 beds </div>
               <div>• For groups of 4: Pay for 4 beds (standard compartment)</div>
               <div>• For groups of 5-6: Pay for 6 beds (family compartment)</div>
               <div>• Entire compartment is reserved for your family</div>
@@ -2931,7 +2923,7 @@ useEffect(() => {
             }}>
               <div style={{ fontWeight: 600, marginBottom: 4 }}>🎯 Auto Select Strategy:</div>
               <div>
-                {passenger.child > 0 || passenger.elderly > 0 
+                {passenger.child > 0 || passenger.elderly > 0 || passenger.nursing > 0 
                   ? "Will select seats near toilet for children/elderly comfort"
                   : totalPassengers === 3
                   ? "Will find 4-bed compartment for your group of 3"
@@ -3022,7 +3014,7 @@ useEffect(() => {
         )}
 
         {/* Gợi ý cho trẻ em và người già */}
-        {(passenger.child > 0 || passenger.elderly > 0) && selectedSeatIds.length === 0 && (
+        {(passenger.child > 0 || passenger.elderly > 0 || passenger.nursing > 0) && selectedSeatIds.length === 0 && (
           <div style={{ 
             background: '#fff3e0', 
             color: '#f57c00', 
@@ -3036,7 +3028,7 @@ useEffect(() => {
           }}>
             <span style={{ fontSize: 16 }}>👴</span>
             <span>
-              You should select a seat near the toilet because your group includes elderly or children.
+              You should select a seat near the toilet because your group includes elderly, children, or nursing mothers.
             </span>
           </div>
         )}
@@ -3119,7 +3111,7 @@ useEffect(() => {
         Color indicates noise level on the train
       </div>
 
-      {/* BỘ LỌC - Sử dụng PriceFilter component */}
+      {/* BỘ LỌC - Sử dụng PriceFilter component with integrated logic */}
       <PriceFilter
         minPrice={minPrice}
         maxPrice={maxPrice}
@@ -3130,6 +3122,19 @@ useEffect(() => {
             handlePriceRangeChange([min, max]);
           }
         }}
+        // New integrated props
+        coachSeats={coachSeats}
+        coaches={COACHES}
+        selectedCoachIdx={selectedCoachIdx}
+        onFilteredSeatsChange={(seatIds) => {
+          setFilteredSeatIds(seatIds);
+          setIsFilterActive(seatIds.length > 0);
+        }}
+        onBestCoachSwitch={(coachIndex) => {
+          setSelectedCoachIdx(coachIndex);
+        }}
+        onShowToast={showToast}
+        // Keep existing functionality for backward compatibility
         onApplyFilter={(filterData) => {
           console.log('Filter callback triggered with:', filterData);
           
@@ -3138,8 +3143,43 @@ useEffect(() => {
             setSelectedRecordTypes(filterData.recordTypes);
           }
           
-          // Trigger the actual filter logic
-          handleFilterSeats();
+          // Handle noise level filter
+          if (filterData.noiseLevel) {
+            console.log('🎯 Setting noise level filter to:', filterData.noiseLevel);
+            setSelectedNoiseLevel(filterData.noiseLevel);
+          } else {
+            console.log('🔄 Clearing noise level filter (reset or null)');
+            setSelectedNoiseLevel(null);
+          }
+          
+          // Handle priority preference
+          if (filterData.priority) {
+            setPriorityPreference(filterData.priority);
+          }
+          
+          // Handle price range
+          if (filterData.priceRange) {
+            setFilterMinPrice(filterData.priceRange.min);
+            setFilterMaxPrice(filterData.priceRange.max);
+          }
+          
+          // Only trigger old filter logic if integrated logic is not available
+          if (!coachSeats || Object.keys(coachSeats).length === 0) {
+            handleFilterSeats();
+          }
+        }}
+        onResetFilters={() => {
+          // Reset to initial state like when first entering Select Seat page
+          console.log('🔄 Reset filters called - returning to initial state like when first entering page');
+          setFilteredSeatIds([]);
+          setIsFilterActive(false); // Disable filtering to return to initial state
+          
+          // Reset all filter states to default (none selected)
+          setSelectedRecordTypes([]);
+          setPriorityPreference('all');
+          setSelectedNoiseLevel(null);
+          setFilterMinPrice(minPrice);
+          setFilterMaxPrice(maxPrice);
         }}
         selectedRecordTypes={selectedRecordTypes}
         priorityPreference={priorityPreference}
@@ -3173,7 +3213,7 @@ useEffect(() => {
           }}>
             <div style={{ fontWeight: 700, fontSize: 18, marginBottom: 12 }}>Suggestion</div>
             <div style={{ fontSize: 15, marginBottom: 20 }}>
-              You should select a seat near the toilet because your group includes elderly or children.
+              You should select a seat near the toilet because your group includes elderly, children, or nursing mothers.
             </div>
             <button onClick={() => setShowWcSuggest(false)} style={{ background: '#1976d2', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 32px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
               Got it
